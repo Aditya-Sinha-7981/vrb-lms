@@ -1,0 +1,21 @@
+username,idnumber,firstname,lastname,email,cohort1,city,profile_field_state,profile_field_region
+rksharma,EMP-1001,Rajesh,Sharma,EMP-1001@noemail.vrbconsumer.internal,brand_veeba,Indore,Madhya Pradesh,Central
+priyagupta,EMP-1002,Priya,Gupta,EMP-1002@noemail.vrbconsumer.internal,brand_woktok,Mumbai,Maharashtra,West
+amitpatel,EMP-1003,Amit,Patel,EMP-1003@noemail.vrbconsumer.internal,brand_zyro,Ahmedabad,Gujarat,West
+sunitakumari,EMP-1004,Sunita,Kumari,EMP-1004@noemail.vrbconsumer.internal,brand_veeba,Bhopal,Madhya Pradesh,Central
+vikramsingh,EMP-1005,Vikram,Singh,EMP-1005@noemail.vrbconsumer.internal,brand_woktok,Pune,Maharashtra,West
+nehagupta,EMP-1006,Neha,Gupta,EMP-1006@noemail.vrbconsumer.internal,brand_zyro,Surat,Gujarat,West
+rameshreddy,EMP-1007,Ramesh,Reddy,EMP-1007@noemail.vrbconsumer.internal,brand_veeba,Bangalore,Karnataka,South
+anjaliiyer,EMP-1008,Anjali,Iyer,EMP-1008@noemail.vrbconsumer.internal,brand_woktok,Chennai,Tamil Nadu,South
+sureshmehta,EMP-1009,Suresh,Mehta,EMP-1009@noemail.vrbconsumer.internal,brand_zyro,Jaipur,Rajasthan,North
+deepasharma,EMP-1010,Deepa,Sharma,EMP-1010@noemail.vrbconsumer.internal,brand_veeba,Lucknow,Uttar Pradesh,North
+manojkumar,EMP-1011,Manoj,Kumar,EMP-1011@noemail.vrbconsumer.internal,brand_woktok,Kolkata,West Bengal,East
+swatibose,EMP-1012,Swati,Bose,EMP-1012@noemail.vrbconsumer.internal,brand_zyro,Kochi,Kerala,South
+arunverma,EMP-1013,Arun,Verma,EMP-1013@noemail.vrbconsumer.internal,brand_veeba,Ludhiana,Punjab,North
+kavitayadav,EMP-1014,Kavita,Yadav,EMP-1014@noemail.vrbconsumer.internal,brand_woktok,Nagpur,Maharashtra,West
+rahuljoshi,EMP-1015,Rahul,Joshi,EMP-1015@noemail.vrbconsumer.internal,brand_zyro,Vadodara,Gujarat,West
+meenashah,EMP-1016,Meena,Shah,EMP-1016@noemail.vrbconsumer.internal,brand_veeba,Gwalior,Madhya Pradesh,Central
+pradeepnair,EMP-1017,Pradeep,Nair,EMP-1017@noemail.vrbconsumer.internal,brand_woktok,Thiruvananthapuram,Kerala,South
+sangeetadas,EMP-1018,Sangeeta,Das,EMP-1018@noemail.vrbconsumer.internal,brand_zyro,Udaipur,Rajasthan,North
+kiranrao,EMP-1019,Kiran,Rao,EMP-1019@noemail.vrbconsumer.internal,brand_veeba,Mysore,Karnataka,South
+ashokpandey,EMP-1020,Ashok,Pandey,EMP-1020@noemail.vrbconsumer.internal,brand_woktok,Kanpur,Uttar Pradesh,North

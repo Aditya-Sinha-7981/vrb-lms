@@ -46,6 +46,40 @@ built, correctly versioned theme was placed one directory level too high
 and was silently invisible to Moodle's plugin scanner for an entire
 session). Do not repeat it.
 
+## File locations — where things go in this repo
+
+- **`LOG.md`** lives at the **repo root**, and only there. It is the one
+  canonical, append-only work log for this project — read it (per the
+  required-reading order below) and append to it after any meaningful unit
+  of work. **Never create a log file anywhere else** (e.g. `docs/LOG.md`).
+  This has already happened once: a separate agent session logged its work
+  to `docs/LOG.md` instead of the root file, which went unnoticed until a
+  later session found it, manually merged its content into the real
+  `LOG.md`, and deleted the stray copy. If you're about to write a log
+  entry and don't see `LOG.md` at the repo root, stop and check you're not
+  about to recreate this mistake — do not start a new log file to work
+  around it.
+- **`docs/`** holds the durable, canonical reference docs for this
+  project — the ones every session is expected to read and that stay
+  accurate over time: `PROJECT_CONTEXT.md`, `ARCHITECTURE.md`,
+  `DEPLOYMENT.md`, `TASKS.md`, `CSV_IMPORT_SPEC.md`,
+  `moodle-feasibility-audit.html`, and similar. Treat this folder as
+  curated — don't drop scratch files, one-off prompts, or generated sample
+  data here.
+- **`docs/temp docs/`** holds temporary/working artifacts that support a
+  specific task but aren't part of the durable doc set: prompt files used
+  to brief a particular agent session on a narrow piece of work (e.g.
+  `child-theme-setup-prompt.md`, `fix-child-theme-renderer-prompt.md`,
+  `csv-import-spec-prompt.md`), and generated/sample data such as
+  `vrb_employees_dummy.csv`. These are not required reading and aren't
+  guaranteed to stay accurate — don't treat anything in here as a source
+  of truth the way `docs/`'s core files are. When creating a new working
+  file for a narrow task, put it here, not in `docs/` directly.
+- If you're unsure whether a new `.md` (or data) file you're about to
+  create is "core" or "temp," ask: will a future session need to read this
+  as ongoing reference (→ `docs/`), or does it only matter for the
+  duration of one task/one prompt (→ `docs/temp docs/`)?
+
 ## Required reading, in this order, before starting any task
 
 1. **This file (AGENTS.md)** — environment facts, read first.

@@ -1,0 +1,220 @@
+/*
+ * theme_vrblms — minimal, generic overrides on top of Moove.
+ * Intentionally plain: this is a "make it usable" pass, not final branding.
+ * Full visual design is a separate, later effort.
+ */
+
+/* ---- New minimal front page (theme/vrblms/layout/frontpage.php +
+   templates/frontpage.mustache) ----
+   Moove's own frontpage layout/template/settings are UNTOUCHED — this is
+   a separate, new layout+template pair that vrblms uses instead, so the
+   original demo content stays available to restyle/reuse later rather
+   than being reconfigured or deleted. Deliberately minimal: one big
+   heading with a fade-up, nothing else, per the "we'll style this
+   properly later" instruction. */
+.vrb-hero {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem 1.5rem;
+    background: linear-gradient(135deg, #1a1a2e 0%, #2a4494 100%);
+}
+
+.vrb-hero h1 {
+    font-size: clamp(1.85rem, 5.5vw, 3.5rem);
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.25;
+    opacity: 0;
+    animation: vrb-hero-fade-up 1.1s ease forwards;
+    animation-delay: 0.15s;
+}
+
+@keyframes vrb-hero-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vrb-hero h1 {
+        animation: none;
+        opacity: 1;
+    }
+}
+
+/* ---- Login page: replace Moove's default orange swirl with a plain, neutral background ---- */
+body#page-login-index,
+body#page-login-index #page,
+body#page-login-index .login-wrapper {
+    background: #f4f5f7 !important;
+    background-image: none !important;
+}
+
+body#page-login-index .login-container {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+    padding: 2.5rem 2rem;
+}
+
+body#page-login-index .login-heading h1,
+body#page-login-index .login-heading h2 {
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+body#page-login-index .login-form input.form-control {
+    border-radius: 6px;
+}
+
+body#page-login-index .btn-primary {
+    background-color: #2a4494;
+    border-color: #2a4494;
+    border-radius: 6px;
+}
+
+body#page-login-index .btn-primary:hover {
+    background-color: #1f3475;
+    border-color: #1f3475;
+}
+
+/* ---- Post-login "My courses" grid: this is the brand-tile chooser for now ---- */
+#page-my-courses .course-info-container .card,
+#page-my-courses .coursebox,
+[data-region="courses-view"] .card {
+    border-radius: 10px;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+#page-my-courses .card:hover,
+[data-region="courses-view"] .card:hover {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+/* ---- Quiz attempt page (employee quiz-taking flow: mod/quiz/attempt.php) ----
+   The question text box (.qtext) was rendering ~240px tall for a single
+   line of text — .qtext wasn't establishing its own block formatting
+   context, so its height was inflating to clear a floated sibling
+   (Moodle's .info panel) instead of sizing to its own content.
+   display:flow-root (a new BFC) fixes this at the source; confirmed via
+   live testing that it collapses to the correct content-driven height
+   without clipping longer/multi-line question text. */
+.que .qtext {
+    display: flow-root;
+    padding: 1.25rem 1.5rem;
+}
+
+.que .formulation {
+    border-radius: 8px;
+    background-color: #f7f9fc;
+    border: 1px solid #dde3ec;
+}
+
+.que .info {
+    padding-top: 0.25rem;
+}
+
+/* "Question N" heading in the info panel uses Bootstrap's .h3 size
+   (~26px) inside a ~105-130px-wide column — far too big for the space,
+   forcing an awkward two-line wrap ("Question" / "1") that reads as
+   broken/overflowing. Sized down to fit the column on one line. */
+.que .info h4.h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    white-space: nowrap;
+    margin-bottom: 0.5rem;
+}
+
+/* Answer options: consistent spacing and a touch-friendly click target,
+   for both true/false and multiple-choice style layouts. */
+.que .answer > div {
+    padding: 0.35rem 0;
+}
+
+.que .answer input[type="radio"],
+.que .answer input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+/* Quiz review page (mod/quiz/review.php) summary — Moove's own
+   .moove-info-container/.moove-infobox components (Status/Started/
+   Completed/Duration/Marks/Grade) are meant to sit in a row of small
+   stat tiles, but render as a plain vertical stack of label+value pairs
+   under this child theme — missing the flex layout that turns them into
+   a proper row. */
+.moove-info-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem 2.5rem;
+    padding: 1rem 0;
+}
+
+.moove-infobox {
+    padding-left: 0 !important;
+}
+
+.moove-infobox-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #6b7280;
+    margin-bottom: 0.15rem;
+}
+
+.moove-infobox-content--small {
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+/* ---- "Navigation"/"Settings" tree blocks (sidebar, shown to admin/teacher
+   roles on course & activity pages e.g. quizzes) — basic spacing/wrapping
+   fix for the tree list, not a redesign. ---- */
+.block_navigation .tree_item,
+.block_settings .tree_item {
+    display: block;
+    padding: 0.1rem 0.25rem;
+    line-height: 1.4;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+.block_navigation .tree_item .icon,
+.block_settings .tree_item .icon {
+    margin-right: 0.35rem;
+    vertical-align: middle;
+}
+
+.block_navigation ul,
+.block_settings ul {
+    padding-left: 0.9rem;
+}
+
+/* ---- Sitewide fixed top nav — was rendering fully transparent
+   (background-color: rgba(0,0,0,0)), on every logged-in page, not just
+   one. At the top of a short page this can look fine by accident (the
+   page's own background happens to be light there), but on any page
+   with enough content to scroll, whatever's behind the fixed bar shows
+   through — including the page's gray side gutters — producing an
+   inconsistent multi-tone strip right through the middle of the nav and
+   making the nav text hard to read. Giving it its own solid background
+   fixes this everywhere at once, since this is the one shared nav bar
+   every logged-in page uses. ---- */
+nav.navbar.fixed-top {
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+[data-bs-theme="dark"] nav.navbar.fixed-top {
+    background-color: #1a1a2e !important;
+}
