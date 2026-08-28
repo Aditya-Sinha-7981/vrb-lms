@@ -1,0 +1,540 @@
+<title>Moodle 5.1.5 Feasibility Audit — VRB LMS</title>
+<style>
+  :root{
+    --paper:#f2f4f7;
+    --surface:#ffffff;
+    --ink:#161a21;
+    --slate:#5c6673;
+    --line:#d9dee5;
+    --accent:#2f5fd1;
+    --accent-soft:#e8eefc;
+    --native:#1f8a5f;      --native-bg:#e6f5ee;
+    --plugin:#1f7a92;      --plugin-bg:#e4f2f6;
+    --custom:#a9660a;      --custom-bg:#faf0dd;
+    --uncertain:#7d5ba6;   --uncertain-bg:#f1e9f8;
+    --blocker:#c23b3b;     --blocker-bg:#fbe9e9;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#10131a; --surface:#171b24; --ink:#e7eaef; --slate:#8b96a5; --line:#262d38;
+      --accent:#7b9df5; --accent-soft:#1c2740;
+      --native:#3ecb8f;    --native-bg:#12261d;
+      --plugin:#5fc2d8;    --plugin-bg:#102329;
+      --custom:#e0a23f;    --custom-bg:#2b2210;
+      --uncertain:#b494d6; --uncertain-bg:#241c30;
+      --blocker:#ec6363;   --blocker-bg:#2c1616;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#10131a; --surface:#171b24; --ink:#e7eaef; --slate:#8b96a5; --line:#262d38;
+    --accent:#7b9df5; --accent-soft:#1c2740;
+    --native:#3ecb8f;    --native-bg:#12261d;
+    --plugin:#5fc2d8;    --plugin-bg:#102329;
+    --custom:#e0a23f;    --custom-bg:#2b2210;
+    --uncertain:#b494d6; --uncertain-bg:#241c30;
+    --blocker:#ec6363;   --blocker-bg:#2c1616;
+  }
+  :root[data-theme="light"]{
+    --paper:#f2f4f7; --surface:#ffffff; --ink:#161a21; --slate:#5c6673; --line:#d9dee5;
+    --accent:#2f5fd1; --accent-soft:#e8eefc;
+    --native:#1f8a5f;    --native-bg:#e6f5ee;
+    --plugin:#1f7a92;    --plugin-bg:#e4f2f6;
+    --custom:#a9660a;    --custom-bg:#faf0dd;
+    --uncertain:#7d5ba6; --uncertain-bg:#f1e9f8;
+    --blocker:#c23b3b;   --blocker-bg:#fbe9e9;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.6;
+    font-size:16px;
+  }
+  a{color:var(--accent);}
+  ::selection{background:var(--accent-soft);}
+
+  .page{max-width:840px;margin:0 auto;padding:56px 24px 120px;}
+
+  header.hero{
+    border-bottom:2px solid var(--ink);
+    padding-bottom:28px;
+    margin-bottom:8px;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 14px;
+  }
+  h1{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:clamp(26px,4vw,36px);
+    letter-spacing:-0.01em;
+    margin:0 0 16px;
+    text-wrap:balance;
+  }
+  .envbar{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--slate);
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:6px 24px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:14px 16px;
+    overflow-x:auto;
+  }
+  .envbar div b{color:var(--ink);font-weight:600;}
+
+  .toc{
+    margin:36px 0 44px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:20px 22px;
+  }
+  .toc-title{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--slate);
+    margin:0 0 12px;
+  }
+  .toc ol{margin:0;padding-left:20px;columns:2;column-gap:28px;}
+  .toc li{margin-bottom:6px;break-inside:avoid;}
+  .toc a{text-decoration:none;color:var(--ink);font-size:14.5px;}
+  .toc a:hover{color:var(--accent);}
+
+  section.finding{margin:52px 0;scroll-margin-top:20px;}
+  .sec-head{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    border-left:4px solid var(--accent);
+    padding-left:14px;
+    margin-bottom:18px;
+  }
+  .sec-num{
+    font-family:var(--mono);
+    color:var(--accent);
+    font-weight:700;
+    font-size:14px;
+  }
+  h2{font-family:var(--mono);font-size:21px;margin:0;font-weight:700;letter-spacing:-.01em;}
+  h3{font-family:var(--sans);font-size:16px;font-weight:700;margin:28px 0 8px;color:var(--ink);}
+
+  p{margin:0 0 14px;max-width:70ch;}
+  .subtle{color:var(--slate);}
+
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    padding:4px 10px;
+    border-radius:100px;
+    margin:2px 6px 10px 0;
+  }
+  .chip.native{color:var(--native);background:var(--native-bg);}
+  .chip.plugin{color:var(--plugin);background:var(--plugin-bg);}
+  .chip.custom{color:var(--custom);background:var(--custom-bg);}
+  .chip.uncertain{color:var(--uncertain);background:var(--uncertain-bg);}
+  .chip.blocker{color:var(--blocker);background:var(--blocker-bg);}
+
+  .evidence{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-left:3px solid var(--accent);
+    border-radius:0 6px 6px 0;
+    padding:14px 16px;
+    margin:10px 0 16px;
+    overflow-x:auto;
+  }
+  .evidence .label{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--slate);
+    margin-bottom:8px;
+  }
+  code, .cite{
+    font-family:var(--mono);
+    font-size:13.5px;
+    background:var(--accent-soft);
+    color:var(--ink);
+    padding:1px 5px;
+    border-radius:4px;
+    white-space:nowrap;
+  }
+  .evidence code{
+    display:block;
+    background:transparent;
+    padding:0;
+    white-space:pre-wrap;
+    line-height:1.55;
+  }
+  .evidence code + code{margin-top:6px;}
+
+  .note{
+    display:flex;
+    gap:10px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:12px 14px;
+    margin:14px 0;
+    font-size:14.5px;
+  }
+  .note .tag{
+    font-family:var(--mono);
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--slate);
+    white-space:nowrap;
+    padding-top:2px;
+  }
+  .note.risk{border-color:color-mix(in srgb, var(--custom) 40%, var(--line));}
+  .note.risk .tag{color:var(--custom);}
+  .note.confidence .tag{color:var(--accent);}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--slate);font-weight:600;}
+  td .cite{white-space:normal;}
+
+  .verdict{
+    margin-top:64px;
+    padding:28px 26px;
+    background:var(--surface);
+    border:2px solid var(--ink);
+    border-radius:10px;
+  }
+  .verdict .eyebrow{margin-bottom:10px;}
+  .verdict p{max-width:none;font-size:16px;}
+  .verdict p:last-child{margin-bottom:0;}
+
+  .protolist{margin:10px 0 0;padding-left:20px;}
+  .protolist li{margin-bottom:6px;}
+
+  footer.pagefoot{
+    margin-top:40px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--slate);
+  }
+
+  @media (max-width:600px){
+    .toc ol{columns:1;}
+    .envbar{grid-template-columns:1fr;}
+  }
+</style>
+
+<div class="page">
+
+<header class="hero">
+  <p class="eyebrow">Read-only technical feasibility audit</p>
+  <h1>Can this Moodle install carry the VRB LMS build?</h1>
+  <div class="envbar">
+    <div><b>Repo</b> ~/Files/Webnoah Projects/vrb-lms</div>
+    <div><b>Moodle</b> 5.1.5+ · branch MOODLE_501_STABLE</div>
+    <div><b>Stack</b> PHP 8.3 + Apache · MariaDB 11.4</div>
+    <div><b>Layout</b> webroot moved to <code>public/</code></div>
+    <div><b>Custom plugins</b> none — <code>public/local/</code> empty</div>
+    <div><b>Audited</b> 2026-07-20</div>
+  </div>
+</header>
+
+<div class="toc">
+  <p class="toc-title">Contents</p>
+  <ol>
+    <li><a href="#s1">Employee accounts &amp; data model</a></li>
+    <li><a href="#s2">Learning structure mapping</a></li>
+    <li><a href="#s3">Quiz gating (module locking)</a></li>
+    <li><a href="#s4">Leaderboard data availability</a></li>
+    <li><a href="#s5">Reporting / shared query layer</a></li>
+    <li><a href="#s6">Certificates</a></li>
+    <li><a href="#s7">Development architecture</a></li>
+  </ol>
+</div>
+
+<p class="subtle">Every claim below is anchored to a file this session actually opened in <code>./moodle</code>. Where the install-tree layout matters — Moodle 5.x moved web-served code out of the repo root into <code>public/</code> — the path shown is the real one, not the pre-5.0 path older tutorials assume.</p>
+
+<!-- SECTION 1 -->
+<section class="finding" id="s1">
+  <div class="sec-head"><span class="sec-num">01</span><h2>Employee accounts &amp; data model</h2></div>
+
+  <h3>Employee Code as the native <code>username</code></h3>
+  <span class="chip native">Native — with a normalization caveat</span>
+  <p><code>PARAM_USERNAME</code> cleaning happens in <code>clean_param_value_username()</code>. It force-lowercases the value and, unless <code>$CFG-&gt;extendedusernamechars</code> is set, strips everything except <code>-.@_a-z0-9</code>.</p>
+  <div class="evidence">
+    <div class="label">public/lib/classes/param.php:1281–1295</div>
+    <code>$param = core_text::strtolower($param);           // MDL-16919
+if (empty($CFG-&gt;extendedusernamechars)) {
+    $param = preg_replace('/[^-\.@_a-z0-9]/', '', $param);
+}</code>
+    <div class="label" style="margin-top:10px;">public/lib/db/install.xml:878, 924</div>
+    <code>&lt;FIELD NAME="username" TYPE="char" LENGTH="100" .../&gt;
+&lt;INDEX NAME="username" UNIQUE="true" FIELDS="mnethostid, username"/&gt;</code>
+  </div>
+  <p>Uniqueness on <code>username</code> is DB-enforced. A code like <code>VRB-EMP-001</code> survives; something with mixed case or a slash would be silently mangled. Compare that to <code>idnumber</code> — also native, 255 chars, unrestricted charset — but its index is <em>non-unique</em> (<code>install.xml:920</code>), so uniqueness there is only whatever the app layer enforces.</p>
+  <div class="note confidence"><span class="tag">Recommend</span><p style="margin:0;">Store the human-readable Employee Code in <code>idnumber</code> (preserves formatting, already a first-class login-adjacent field), and derive the DB-unique, charset-safe <code>username</code> from it at account-creation time.</p></div>
+
+  <h3>Storage: profile fields vs. a custom table</h3>
+  <span class="chip native">Native fields exist</span>
+  <span class="chip custom">Custom table = a build decision, not a blocker</span>
+  <p><code>city</code> and <code>country</code> already live on <code>mdl_user</code> itself — <code>city</code> is even indexed. There is no native <code>state</code> field. Brand/State/Region would go through either core custom profile fields or a purpose-built table.</p>
+  <div class="evidence">
+    <div class="label">public/lib/db/install.xml:889–890, 919</div>
+    <code>&lt;FIELD NAME="city" TYPE="char" LENGTH="120" .../&gt;
+&lt;FIELD NAME="country" TYPE="char" LENGTH="2" .../&gt;
+&lt;INDEX NAME="city" UNIQUE="false" FIELDS="city"/&gt;</code>
+    <div class="label" style="margin-top:10px;">public/lib/db/install.xml:1417–1421 — user_info_data</div>
+    <code>&lt;FIELD NAME="userid" TYPE="int" .../&gt;
+&lt;FIELD NAME="fieldid" TYPE="int" .../&gt;
+&lt;FIELD NAME="data" TYPE="text" NOTNULL="true" .../&gt;   -- EAV, no native index</code>
+  </div>
+  <table>
+    <tr><th>Path</th><th>Queryability</th><th>Content-entry</th><th>Upgrade safety</th></tr>
+    <tr><td>Core profile field (<code>user/profile/field/menu</code>)</td><td>EAV — <code>user_info_data.data</code> is <code>TEXT</code>, filtering means a per-field join and string comparison, not an indexed column</td><td>Managed entirely in Site Admin UI by non-technical staff; auto-included in CSV upload (below)</td><td>Zero — pure core, survives upgrades untouched</td></tr>
+    <tr><td>Custom local plugin table</td><td>Real columns, real foreign keys, real indexes — cheap to query at any scale</td><td>Needs an admin screen built by you</td><td>Your <code>upgrade.php</code>, your responsibility</td></tr>
+  </table>
+  <p>For low-thousands of employees the EAV cost is theoretical, not measured. Use profile fields for State/City/Region so the client's HR team can manage the lookup lists themselves; reserve a custom table for the day query performance is <em>proven</em> to matter, not preemptively.</p>
+
+  <h3>Cohorts for Brand <em>and</em> Region simultaneously</h3>
+  <span class="chip native">Native</span>
+  <p>A user can sit in any number of cohorts at once — <code>cohort_members</code> only enforces uniqueness on the <code>(cohortid, userid)</code> pair, not on <code>userid</code> alone.</p>
+  <div class="evidence">
+    <div class="label">public/lib/db/install.xml:2454–2467</div>
+    <code>&lt;INDEX NAME="cohortid-userid" UNIQUE="true" FIELDS="cohortid, userid"/&gt;</code>
+    <div class="label" style="margin-top:10px;">public/cohort/lib.php</div>
+    <code>function cohort_add_member($cohortid, $userid)
+function cohort_get_user_cohorts($userid, $withcustomfields = false)</code>
+  </div>
+  <p>So "Brand: Wok Tok" and "Region: Maharashtra" are two independent cohort memberships on the same user, both queryable via <code>cohort_get_user_cohorts()</code>.</p>
+
+  <h3>Bulk user upload</h3>
+  <span class="chip native">Native — profile fields and cohorts in one CSV</span>
+  <p><code>admin/tool/uploaduser</code> resolves numbered <code>cohortN</code> columns (by cohort id <em>or</em> idnumber, auto-creating the cohort if missing and the uploader holds <code>moodle/cohort:manage</code>) and <code>profile_field_&lt;shortname&gt;</code> columns in the same import pass.</p>
+  <div class="evidence">
+    <div class="label">public/admin/tool/uploaduser/classes/process.php:1090–1130</div>
+    <code>if (!preg_match('/^cohort\d+$/', $column)) { ... }
+$cohort = $DB-&gt;get_record('cohort', ['idnumber' =&gt; $addcohort]);
+...
+cohort_add_member($cohort-&gt;id, $user-&gt;id);</code>
+    <div class="label" style="margin-top:10px;">public/admin/tool/uploaduser/locallib.php:455–497</div>
+    <code>if (preg_match('/^profile_field_/', $key)) {
+    $shortname = str_replace('profile_field_', '', $key);
+    ...</code>
+  </div>
+  <p>Version check: <code>public/admin/tool/uploaduser/version.php</code> declares <code>2025100600</code>, requiring <code>2025092600</code> — this is core-bundled and matches the installed branch exactly, not a lagging third-party tool.</p>
+</section>
+
+<!-- SECTION 2 -->
+<section class="finding" id="s2">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Learning structure mapping</h2></div>
+
+  <span class="chip native">Native</span>
+  <p>Course categories nest arbitrarily — <code>course_categories.parent</code> plus computed <code>path</code>/<code>depth</code> — so Brand → sub-category is a direct fit at the category level.</p>
+  <div class="evidence">
+    <div class="label">public/lib/db/install.xml:124–141</div>
+    <code>&lt;FIELD NAME="parent" TYPE="int" .../&gt;
+&lt;FIELD NAME="depth" TYPE="int" .../&gt;
+&lt;FIELD NAME="path" TYPE="char" LENGTH="255" .../&gt;</code>
+  </div>
+  <p><code>mod/page</code>, <code>mod/book</code>, <code>mod/lesson</code>, <code>mod/quiz</code> and <code>mod/h5pactivity</code> are all present under <code>public/mod/</code> as candidate content/quiz activity types.</p>
+
+  <h3>Two viable mappings — pick on reportability, not just simplicity</h3>
+  <table>
+    <tr><th>Option</th><th>Content-entry</th><th>Gate mechanics</th><th>Reportability</th></tr>
+    <tr><td><b>A.</b> 1 course = 1 module</td><td>Simplest mental model per module; but many courses to create per category</td><td>Restrict Access between courses is awkward — Moodle's completion/availability chain is built to gate <em>within</em> a course, not between separate courses</td><td>Cross-module rollups need a category-level query (<code>core_course_category::get_courses()</code>) across many course records</td></tr>
+    <tr><td><b>B.</b> 1 course = 1 category, sections/activities = modules</td><td>Slightly more setup per category, but one enrolment event unlocks the whole category</td><td>Restrict Access at section/activity level is exactly what Section 03 verifies works end-to-end</td><td>One course = one leaderboard scope; simpler joins</td></tr>
+  </table>
+  <p><b>Recommend Option B</b>: the completion-gated, section-based structure is what Moodle's own availability engine is designed around (see Section 03), and it keeps "leaderboard per category" a single-course query instead of a cross-course aggregation.</p>
+
+  <h3>Brand-based access restriction</h3>
+  <span class="chip native">Native</span>
+  <p><code>enrol_cohort</code> is core-bundled (<code>public/enrol/cohort/version.php</code>: <code>2025100600</code>, matches installed core exactly) and extends the standard <code>enrol_plugin</code> base.</p>
+  <div class="evidence">
+    <div class="label">public/lib/enrollib.php:1881</div>
+    <code>abstract class enrol_plugin { ... }</code>
+    <div class="label" style="margin-top:10px;">public/enrol/cohort/db/events.php</div>
+    <code>'eventname' =&gt; '\core\event\cohort_member_added',
+'callback'  =&gt; 'enrol_cohort_handler::member_added'</code>
+    <div class="label" style="margin-top:10px;">public/enrol/cohort/classes/task/enrol_cohort_sync.php</div>
+    <code>class enrol_cohort_sync extends \core\task\scheduled_task { ... }</code>
+  </div>
+  <p>Sync is not just nightly cron — <code>cohort_member_added</code>/<code>removed</code> events fire the enrolment handler near-instantly, with the scheduled task as a reconciliation fallback. Mechanism: one <code>enrol_cohort</code> instance per course pointed at the "Brand: Veeba" cohort auto-enrolls anyone added to that cohort into every Veeba course.</p>
+</section>
+
+<!-- SECTION 3 -->
+<section class="finding" id="s3">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Quiz gating (module locking)</h2></div>
+  <span class="chip native">Native — verified end to end</span>
+  <p>This is the strongest-evidenced finding in the audit: the full chain from "set a pass grade on Quiz A" to "Module B stays locked" was traced through three separate subsystems and they agree on the same constants.</p>
+
+  <h3>Step 1 — pass grade is a generic core grading field</h3>
+  <div class="evidence">
+    <div class="label">public/course/moodleform_mod.php:373</div>
+    <code>$gradepassfieldname = component_gradeitems::get_field_name_for_itemnumber($component, $itemnumber, 'gradepass');</code>
+  </div>
+  <p>Not a quiz-specific hack — every gradable activity type gets this via <code>moodleform_mod</code>.</p>
+
+  <h3>Step 2 — completion derives PASS/FAIL from the grade</h3>
+  <div class="evidence">
+    <div class="label">public/lib/completionlib.php:84, 89, 1595–1606</div>
+    <code>define('COMPLETION_COMPLETE_PASS', 2);
+define('COMPLETION_COMPLETE_FAIL', 3);
+...
+if ($item-&gt;gradepass &amp;&amp; $item-&gt;gradepass &gt; 0.000009 &amp;&amp; ...) {
+    $score = !is_null($grade-&gt;finalgrade) ? $grade-&gt;finalgrade : $grade-&gt;rawgrade;
+    if ($score &gt;= $item-&gt;gradepass) {
+        return COMPLETION_COMPLETE_PASS;
+    } ...</code>
+  </div>
+
+  <h3>Step 3 — Restrict Access reads that exact state</h3>
+  <div class="evidence">
+    <div class="label">public/availability/condition/completion/classes/condition.php:135, 155, 164</div>
+    <code>public function is_available($not, info $info, $grabthelot, $userid): bool {
+    ...
+    case COMPLETION_COMPLETE_PASS: ...
+    case COMPLETION_COMPLETE_FAIL: ...</code>
+  </div>
+  <p>So Restrict Access on Module B can require "Module A was completed <em>with a pass</em>," not merely "viewed" — the three files above share the same <code>COMPLETION_COMPLETE_PASS</code> constant across three different subsystems (grading → completion → availability), which is the actual proof the chain is wired together, not three independently-plausible pieces.</p>
+
+  <h3>Quiz-specific settings confirmed present</h3>
+  <div class="evidence">
+    <div class="label">public/mod/quiz/mod_form.php:155, 159, 193</div>
+    <code>$mform-&gt;addElement('select', 'attempts', ...);        // max attempts
+$mform-&gt;addElement('select', 'grademethod', ...);      // highest/average/first/last
+$mform-&gt;addElement('selectyesno', 'shuffleanswers', ...); // shuffle within question</code>
+    <div class="label" style="margin-top:10px;">public/mod/quiz/db/install.xml:101</div>
+    <code>&lt;FIELD NAME="shufflequestions" ... COMMENT="question order shuffled per attempt"/&gt;</code>
+  </div>
+  <p>Random <em>selection</em> of questions from a bank is the core <code>random</code> question type (<code>public/question/type/random/</code> present), added into a quiz section alongside fixed questions.</p>
+
+  <div class="note risk"><span class="tag">5.1-specific note</span><p style="margin:0;">The mod_quiz completion class literally comments <em>"Completion pass grade is now part of core"</em> (<code>custom_completion.php:140</code>) — confirming this was refactored out of quiz-specific code at some point. The end behavior matches older docs, but the exact settings-page field wiring may look different from screenshots in older tutorials. Worth one visual pass in the browser, not a functional risk.</p></div>
+</section>
+
+<!-- SECTION 4 -->
+<section class="finding" id="s4">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Leaderboard data availability</h2><span class="subtle" style="font-family:var(--mono);font-size:12px;">highest priority</span></div>
+
+  <h3>Where the data lives</h3>
+  <span class="chip native">Native — fully sufficient columns</span>
+  <div class="evidence">
+    <div class="label">public/mod/quiz/db/install.xml:146–171 — mdl_quiz_attempts</div>
+    <code>attempt        -- sequential attempt number for this user+quiz
+state          -- inprogress | overdue | finished | abandoned
+timestart      -- attempt start timestamp
+timefinish     -- attempt submit timestamp (0 = not yet submitted)
+sumgrades      -- raw per-attempt score
+UNIQUE (quiz, userid, attempt)</code>
+    <div class="label" style="margin-top:10px;">public/mod/quiz/db/install.xml:174–188 — mdl_quiz_grades</div>
+    <code>grade          -- aggregated score per user per quiz, per quiz.grademethod
+timemodified</code>
+  </div>
+  <p><b>Time-taken is not derived or estimated</b> — <code>timefinish − timestart</code> is a direct column subtraction, already sitting on every attempt row. This resolves that sub-question outright rather than leaving it open.</p>
+
+  <h3>API vs. raw table access</h3>
+  <span class="chip custom">No clean unified path — confirmed by core's own precedent</span>
+  <p>The gradebook API (<code>grade_grade</code>, <code>grade_get_grades()</code>) covers course-level <em>final</em> grades but carries no attempt number and no timing:</p>
+  <div class="evidence">
+    <div class="label">public/lib/grade/grade_grade.php:38, 238</div>
+    <code>class grade_grade extends grade_object { ... }
+public static function fetch_users_grades($grade_item, $userids, $include_missing=true)</code>
+    <div class="label" style="margin-top:10px;">public/lib/gradelib.php:452</div>
+    <code>function grade_get_grades($courseid, $itemtype, $itemmodule, $iteminstance, $userid_or_ids=null)</code>
+  </div>
+  <p>For "all quiz results for course X, joined to cohort/profile data," there is no single official call. The proof isn't absence-of-search — it's that Moodle's <em>own</em> core <code>quiz_overview</code> report solves this exact problem with hand-written SQL, not an API:</p>
+  <div class="evidence">
+    <div class="label">public/mod/quiz/report/overview/overview_table.php:65, 100</div>
+    <code>FROM {user} u
+...
+FROM {quiz_attempts} quizaouter
+JOIN ( ... ) ...</code>
+  </div>
+  <p><code>quiz_get_user_attempts($quizids, $userid, ...)</code> (<code>public/mod/quiz/lib.php:517</code>) exists but is scoped to one user at a time — not a bulk cross-user report primitive.</p>
+  <div class="note confidence"><span class="tag">Confidence: high</span><p style="margin:0;">This is grounded directly in <code>install.xml</code> schemas and core report source, not recalled documentation. The leaderboard's cross-cutting query (attempts × user × cohort/profile, grouped by Brand → State → City) is <b>custom SQL in a local plugin</b> — squarely the same pattern core already uses for its own reporting, so it's a well-trodden path, not a workaround.</p></div>
+</section>
+
+<!-- SECTION 5 -->
+<section class="finding" id="s5">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Reporting / shared query layer</h2></div>
+  <span class="chip custom">Custom plugin required — architecture recommendation</span>
+  <p>One local plugin (e.g. <code>local_vrblms</code>) should own the SQL against <code>{quiz_attempts}</code>/<code>{quiz_grades}</code>/<code>{cohort_members}</code>/<code>{user_info_data}</code>, exposed as internal service classes — a leaderboard block and an admin report both call into the same classes instead of each carrying their own copy of the join.</p>
+  <div class="evidence">
+    <div class="label">Confirmed clean slate</div>
+    <code>public/local/  →  only readme.txt, upgrade.txt (no existing plugin to conflict with)</code>
+  </div>
+  <p><code>public/blocks/</code> and <code>public/report/</code> (e.g. <code>report/log</code>'s <code>settings.php</code> / <code>lib.php</code> / <code>version.php</code> / <code>db/</code> layout) are the structural templates a new block and report plugin would follow — both are thin presentation layers over the same <code>local_vrblms</code> API, which is also where certificate-qualification logic (Section 06) would live so it can reuse the identical ranking query.</p>
+</section>
+
+<!-- SECTION 6 -->
+<section class="finding" id="s6">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Certificates</h2></div>
+  <span class="chip blocker">Not installed locally — do not assume</span>
+  <p>No certificate plugin exists anywhere in this tree — <code>find public/mod public/local -iname "*cert*"</code> returned nothing. Whatever plugin gets used (e.g. a Custom Certificate–style module), its presence, its <code>version.php</code> compatibility with 5.1.5, and its maintenance status all have to be verified <em>after</em> it's actually fetched and installed — none of that can be claimed from this install as it stands today.</p>
+
+  <h3>A native fallback that already does the hard part</h3>
+  <span class="chip native">Native — arbitrary user_id, confirmed</span>
+  <p>Core badges can be issued programmatically for any user id, independent of whether Moodle's own criteria engine considers that user to have "earned" it — which is exactly the shape needed, since qualification here is decided by custom ranking logic, not course completion state.</p>
+  <div class="evidence">
+    <div class="label">public/badges/classes/badge.php:428</div>
+    <code>public function issue($userid, $nobake = false) {
+    ...
+    $issued-&gt;userid = $userid;
+    $result = $DB-&gt;insert_record('badge_issued', $issued, true);
+    \core\event\badge_awarded::create($eventdata)-&gt;trigger();</code>
+  </div>
+  <p>The gap: badges are OpenBadges (image + JSON assertion), not a typeset, printable PDF certificate with name/course/date layout. Whether that satisfies what the client actually expects as "a certificate" is a product question, not a technical one — flagged below as the one item worth resolving before committing to either path.</p>
+  <div class="note risk"><span class="tag">Resolve before build</span><p style="margin:0;">Fetch the intended certificate plugin, read its <code>version.php</code> against <code>2025100605.05</code> / branch <code>501</code>, and check its repo's last-commit date — <em>then</em> decide between it and a <code>core_badges::issue()</code>-based wrapper. Don't default to the plugin on memory of it being "the standard choice."</p></div>
+</section>
+
+<!-- SECTION 7 -->
+<section class="finding" id="s7">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Development architecture</h2></div>
+
+  <h3>Plugin count</h3>
+  <table>
+    <tr><th>Plugin</th><th>Owns</th></tr>
+    <tr><td><code>local_vrblms</code></td><td>Any custom tables only if profile fields prove insufficient; shared service classes for leaderboard/reporting/certificate-qualification queries; scheduled tasks for custom syncs</td></tr>
+    <tr><td><code>block_vrblms_leaderboard</code></td><td>Leaderboard UI on course/dashboard pages, calling only into <code>local_vrblms</code></td></tr>
+    <tr><td><code>report_vrblms</code></td><td>Admin-facing brand/state/city breakdowns, same shared API</td></tr>
+    <tr><td><i>(none needed)</i></td><td>Enrolment — <code>enrol_cohort</code> is already core and sufficient (Section 02); building a custom enrolment plugin would be unjustified scope</td></tr>
+    <tr><td><i>(pending Section 06)</i></td><td>Either a verified third-party certificate plugin, or a thin <code>local_vrblms</code> wrapper around <code>core_badges::issue()</code></td></tr>
+  </table>
+
+  <h3>Core modification check</h3>
+  <span class="chip native">No BLOCKER found</span>
+  <p>Every requirement traced to a real, non-core extension point rather than a gap that would force touching core: cohort <code>event_added</code> observers, the <code>enrol_plugin</code> type, the <code>availability_completion</code> condition class, the gradebook API, and <code>badge::issue()</code> for arbitrary users. None of Sections 01–06 needed to reach into <code>public/lib</code>, <code>public/mod/quiz</code>, or <code>public/completion</code> source itself — every hook used is a documented extension surface already exercised by core-bundled plugins in this same tree.</p>
+</section>
+
+<div class="verdict">
+  <p class="eyebrow" style="margin-bottom:10px;">Overall verdict</p>
+  <p>This installation is a safe technical foundation to commit to. Every requirement — username/profile modeling, brand-and-region cohort membership, cohort-synced enrolment, the completion-plus-availability quiz-gating chain, and the raw attempt/timing data needed for a leaderboard — traces to real, current, core-bundled code at this exact 5.1.5 branch, and none of it requires modifying core. The one open item is Section 06: no certificate plugin is installed, and that choice (a fetched third-party plugin vs. a <code>core_badges</code>-based wrapper) should be resolved with a short prototype — install the candidate plugin, confirm its <code>version.php</code> against branch <code>501</code>, and mock up whether a badge-issued asset reads as "a certificate" to the client — before that piece of the architecture is locked in. Everything else in this report is ready to build against as-is.</p>
+</div>
+
+<footer class="pagefoot">Read-only inspection — no files modified, no migrations run, no admin state changed.</footer>
+
+</div>
