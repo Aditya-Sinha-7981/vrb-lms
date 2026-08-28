@@ -218,3 +218,56 @@ nav.navbar.fixed-top {
 [data-bs-theme="dark"] nav.navbar.fixed-top {
     background-color: #1a1a2e !important;
 }
+
+/* ---- VRB LMS Leaderboard page (local_vrblms/leaderboard.php) — the
+   ranked table has 6 columns (#, Employee, Location, Score, Modules,
+   Time). Originally this table lived in a sidebar block (~250-300px
+   wide) where the last column(s) rendered fully off the right edge with
+   no way to reach them; the leaderboard has since moved to its own full
+   page, but the table itself is still narrower than its content on small
+   viewports, so the horizontal-scroll wrapper stays — mobile is a hard
+   requirement per PROJECT_CONTEXT.md, not optional. ---- */
+.vrb-leaderboard-table-wrap {
+    overflow-x: auto;
+}
+
+.vrb-leaderboard-table {
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+/* The viewer's own row on their own-course/overall leaderboard views
+   (local_vrblms\output\leaderboard_view::render_table()'s $highlightuserid) -
+   makes "where am I" immediately visible without having to scan for it. */
+.vrb-leaderboard-own-row {
+    background-color: #fff3cd;
+    font-weight: 600;
+}
+
+[data-bs-theme="dark"] .vrb-leaderboard-own-row {
+    background-color: #4a3f1a;
+}
+
+.vrb-leaderboard-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: flex-end;
+    margin-bottom: 0.75rem;
+}
+
+.vrb-leaderboard-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 6.5rem;
+}
+
+.vrb-leaderboard-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+}
+
+.vrb-leaderboard-apply {
+    height: fit-content;
+}

@@ -1161,3 +1161,452 @@ this file and not need the full prior conversation re-explained.
     scoped rule" gotcha in the entry above) — if it resurfaces after a
     Moodle core or Boost/Moove update, re-check whether the `!important`-
     free override still wins before assuming something new broke.
+
+## [2026-08-20] — Phase 3: built and verified `local_vrblms` (shared leaderboard/service plugin)
+**Agent:** Claude Code
+**What:** Built the `local_vrblms` plugin at `public/local/vrblms/` per
+  `TASKS.md` Phase 3 — the shared Brand+Region-joined quiz-ranking service
+  layer that `block_vrblms_leaderboard` (Phase 4) and `report_vrblms`
+  (Phase 5) are meant to consume, rather than each re-implementing the
+  join. Structure:
+  - `classes/local/attempt_repository.php` — all raw SQL against
+    documented core tables only (`{cohort}`, `{cohort_members}`,
+    `{enrol}`, `{quiz}`, `{quiz_attempts}`, `{user}`, `{user_info_data}`,
+    `{user_info_field}`); no new DB tables, this plugin is read-only.
+    Resolves the `state`/`region` profile field ids by shortname at
+    runtime (cached per-request) rather than hardcoding their numeric ids.
+  - `classes/ranking/` — `ranking_strategy` interface,
+    `attempt_selection_strategy` abstract base (shared aggregation logic),
+    and two concrete strategies: `best_attempt_strategy` (per-quiz max
+    score) and `first_attempt_strategy` (per-quiz first attempt,
+    retries ignored). `strategy_manager` is the registry/factory both
+    `settings.php` and `api.php` go through — nothing hardcodes strategy
+    names outside this one class.
+  - `settings.php` — one `admin_setting_configselect` under Site
+    Administration → Plugins → Local plugins ("VRB LMS leaderboard
+    service") for the default ranking strategy — this is what makes the
+    ranking formula genuinely admin-configurable per `TASKS.md`'s explicit
+    requirement, not just structurally pluggable in code.
+  - `classes/api.php` — the one public class other plugins should call:
+    `get_brands()`, `get_states($brand)`, `get_cities($brand, $state)`
+    (all three back Phase 4's filter dropdowns), and
+    `get_leaderboard($brand, $state, $city, $strategykey, $limit)`, which
+    returns every member of the brand's cohort (including employees with
+    zero attempts, scored 0%/`0 of N` — the leaderboard shows the full
+    roster, not just people who've started) ranked by
+    `(score_percent desc, total_time_seconds asc among those who've
+    completed at least one quiz, fullname asc)`.
+**Why:** `PROJECT_CONTEXT.md` states the ranking formula is a genuinely
+  open business decision, so `TASKS.md` requires the query layer to accept
+  a ranking strategy as config/parameter rather than hardcoding one
+  formula — implemented two working strategies (not just one, which is
+  all `TASKS.md` strictly required) specifically to prove the pluggable
+  design actually works end-to-end, not just structurally allow for it
+  later. This was flagged as the highest-value remaining item for the
+  client showcase, so it was built and verified directly against the real
+  installed Moodle source and the real 20-employee/3-brand test dataset,
+  not from general Moodle knowledge.
+**Files touched:** `public/local/vrblms/version.php`, `settings.php`,
+  `lang/en/local_vrblms.php`, `classes/api.php`,
+  `classes/local/attempt_repository.php`,
+  `classes/ranking/{ranking_strategy,attempt_selection_strategy,
+  best_attempt_strategy,first_attempt_strategy,strategy_manager}.php`
+  (all new). Database: `local_vrblms` plugin registration + version row
+  (via `admin/cli/upgrade.php`) and one config value
+  (`local_vrblms/defaultstrategy`), no schema/tables added.
+**Verification done:**
+  - Confirmed no pre-built Moodle API returns this cohort/profile-joined
+    shape before writing custom SQL: `cohort/lib.php` has no
+    `cohort_get_members()` function at all in this version (grepped the
+    whole codebase, not just the one file), and `mod/quiz`'s own overview
+    report (`mod/quiz/report/overview/report.php`) is scoped to one
+    quiz/course, not cross-course — matches `ARCHITECTURE.md`'s existing
+    "no single official API" note, this isn't a missed-API shortcut.
+  - Verified every `$DB` method signature used
+    (`get_records_select`, `get_fieldset_select`, `get_fieldset_sql`,
+    `get_in_or_equal`, `sql_like`) directly against
+    `lib/dml/moodle_database.php` before using it, and
+    `admin_setting_configselect`'s constructor directly against
+    `lib/adminlib.php`, rather than assuming from general Moodle
+    knowledge.
+  - `core_component::get_plugin_list('local')` confirmed `vrblms` detected
+    before install. `admin/cli/upgrade.php --non-interactive` installed it
+    cleanly (`-->local_vrblms ++ Success++`, new setting registered), no
+    errors.
+  - Ran a CLI verification script (session-scratchpad, not committed —
+    same pattern as Phase 2's provisioning verification) calling every
+    `api.php` method against the real dataset and hand-checked results
+    against raw `{quiz_attempts}` rows:
+    - `rksharma` (userid=4): best-attempt strategy → 100% (their 2nd/3rd
+      attempts scored 4/4); first-attempt strategy → 0% (their 1st
+      attempt scored 0/4) — exactly the divergence expected from their
+      known 0%→100%→100% attempt history from the Phase 2 entries above.
+    - `priyagupta` (userid=5): 75% under both strategies (only one
+      attempt per quiz exists, so best==first) — 100% on Module 1
+      (quiz=3, 4/4) averaged with 50% on Module 2 (quiz=4, 1/2), matching
+      her known attempt rows exactly.
+    - `kavitayadav` correctly appears in all three brands' leaderboards
+      (Veeba/Wok Tok/Zyro), confirming the multi-brand cohort membership
+      from the earlier entry is correctly reflected.
+    - The orphaned `testemployee1` (Phase 1's manual test account,
+      brand_veeba member, no profile-field/city data) appears correctly
+      with a 0% score and blank state/city rather than crashing the
+      directory join — a real edge case in the live data, not a
+      synthetic one.
+    - `get_states('brand_veeba')` / `get_cities('brand_veeba', 'Madhya
+      Pradesh')` and the leaderboard's own `?state=`/`?city=` filters
+      were cross-checked against each other and against the source CSV
+      data and matched exactly.
+  - Browser-verified (logged in as real admin, not simulated) that Site
+    Administration → Plugins → Local plugins → "VRB LMS leaderboard
+    service" renders the strategy dropdown and description text
+    correctly with no page errors; separately confirmed via CLI
+    (`set_config`/`get_config` round-trip) that changing the setting
+    actually changes which strategy class `strategy_manager::get_strategy
+    (null)` resolves to, then reverted the value back to `best` (the
+    intended shipped default) afterward so no test state was left behind.
+**Gotchas for future agents:**
+  - There is genuinely no `cohort_get_members($cohortid)` function in
+    this Moodle version — don't go looking for one from memory. Query
+    `{cohort_members}` directly (it's a documented core table, two
+    columns, `cohortid`/`userid`), which is what `attempt_repository`
+    does.
+  - `profile_user_record()` loads one user's profile fields at a time —
+    deliberately not used here, since a leaderboard needs bulk
+    state/region lookups for an entire brand's roster in one query.
+    `attempt_repository::get_employee_directory()` does its own bulk
+    `{user_info_data}` join instead (fetching user rows and profile rows
+    as two separate queries and joining in PHP, not a SQL `CASE`-pivot —
+    simpler to read, avoids any cross-DB-driver aggregation quirks for
+    just two extra columns).
+  - `state`/`region` profile field ids are looked up by shortname at
+    runtime (`attempt_repository::get_profile_field_id()`, statically
+    cached per request) rather than hardcoded as `1`/`2` — they happen to
+    be `1`/`2` in this environment today, but that's an artifact of
+    creation order, not a guarantee; don't hardcode them if extending this
+    code.
+  - The leaderboard's tie-break logic special-cases zero-attempt
+    employees: two people who've both completed zero quizzes tie-break on
+    name, not on `total_time_seconds` (which would otherwise put every
+    0%-scored, zero-attempt employee ahead of anyone with real but slower
+    completion time, since 0 seconds is falsely "fastest"). If extending
+    the ranking logic later, keep this guard — it not just a stability
+    tie-break, it fixes a real correctness bug that showed up immediately
+    in the verification output (see Veeba's leaderboard: all the
+    zero-attempt employees sort by name, not arbitrarily).
+  - No PHPUnit harness exists in this environment (`phpunit.xml` absent,
+    `admin/tool/phpunit` not present at the expected path) — don't assume
+    one is available for future plugin work either; the CLI-script
+    verification pattern used here (and in Phase 2) is the working
+    substitute for this project.
+  - Phase 4/5 should call `\local_vrblms\api::*` only — the repository and
+    ranking classes are internal implementation detail, not meant to be
+    called directly by the block/report plugins.
+
+## [2026-08-20] — Phase 4: built, deployed, and verified `block_vrblms_leaderboard`
+**Agent:** Claude Code
+**What:** Built the regional leaderboard block at
+  `public/blocks/vrblms_leaderboard/`, per the user's explicit instruction
+  to build Phase 4 and stop there (not Phase 5/`report_vrblms`). It calls
+  `\local_vrblms\api` exclusively — no query/ranking logic duplicated in
+  the block, per `TASKS.md`'s Phase 4 requirement. Structure: `version.php`
+  (declares `$plugin->dependencies = ['local_vrblms' => 2026082100]`),
+  `db/access.php` (`block/vrblms_leaderboard:myaddinstance` at
+  CONTEXT_SYSTEM granted to the `user` archetype — i.e. every authenticated
+  employee, not just admins/teachers — so any employee can add this to
+  their own Dashboard; `:addinstance` at CONTEXT_BLOCK for
+  editingteacher/manager, the standard pattern for course/site pages),
+  `lang/en/block_vrblms_leaderboard.php`, and
+  `block_vrblms_leaderboard.php` (the block class). Renders four filters —
+  Brand, State, City, Ranking (strategy) — as a plain `<form method="get">`
+  with `onchange="this.form.submit()"` auto-submit selects (inline HTML
+  attribute, not an AMD module) and a ranked table (#, Employee, Location,
+  Score, Modules, Time) below it. Deliberately did not use the AMD/JS
+  build pipeline for the filter interactivity, since `ARCHITECTURE.md`
+  flags that pipeline as unverified in this environment — GET-param
+  filtering means the whole thing works via plain page reloads, no JS
+  dependency at all.
+**Why:** This was flagged by the user as the natural next step after
+  `local_vrblms` (previous entry) for the client showcase — a working,
+  visible leaderboard, not just the service layer behind it. The
+  capability design (any employee can self-add it to their Dashboard) was
+  a deliberate choice matching `PROJECT_CONTEXT.md`'s framing of the
+  leaderboard as an employee-facing, motivational feature, not an
+  admin-only report.
+**Files touched:** `public/blocks/vrblms_leaderboard/{version.php,
+  block_vrblms_leaderboard.php, db/access.php,
+  lang/en/block_vrblms_leaderboard.php}` (all new).
+  `public/theme/vrblms/style/custom.css` (new "VRB LMS Leaderboard block"
+  section — see gotcha below on why this was needed, not optional
+  polish). Database: `block_vrblms_leaderboard` plugin registration (via
+  `admin/cli/upgrade.php`); `$CFG->defaulthomepage`-adjacent state
+  untouched. Site config: added a block instance to the **Default
+  Dashboard page** template (`/my/indexsys.php`) and ran **"Reset
+  Dashboard for all users"** (Site Administration → Appearance → Default
+  Dashboard page) so all 20 existing test employees' *already-created*
+  personal dashboards got the block too, not just new logins going
+  forward — see gotcha below on what this actually does before reusing it.
+**Verification done:**
+  - `core_component::get_plugin_list('block')` confirmed `vrblms_
+    leaderboard` detected; `admin/cli/upgrade.php --non-interactive`
+    installed cleanly, no errors. `php -l` confirmed no syntax errors
+    before ever loading it in a browser.
+  - Verified `block_base`'s real method signatures/defaults directly
+    against `public/blocks/moodleblock.class.php` (not `lib/blocklib.php`,
+    which despite the name only holds `block_manager` — the actual
+    `block_base` class lives in the `blocks/` folder, easy to guess wrong)
+    before writing `applicable_formats()`/`get_content()` — confirmed the
+    *default* `applicable_formats()` already covers course/site/my pages,
+    so no override was even needed. Verified `html_writer::select()`,
+    `::span()`, `moodle_url::params()`/`out_omit_querystring()`, and
+    `admin_setting_configselect`'s constructor directly against their
+    source in `lib/` before use, same standard as the Phase 3 entry above.
+  - Cross-checked `db/access.php`'s capability shape against core's
+    `block_html` (`blocks/html/db/access.php`) — same
+    `myaddinstance`/`addinstance` pattern, same `clonepermissionsfrom`
+    targets, rather than guessing the capability names/structure.
+  - Browser-verified end to end, twice, as different real accounts (not
+    admin-only, not simulated): (1) as **admin**, added the block to a
+    Dashboard via the real "Add a block" UI flow, confirmed the Brand/
+    State/City/Ranking filters and ranked table render, and confirmed
+    filtering via URL params (`?vrbbrand=brand_woktok&vrbstrategy=first`)
+    correctly re-renders the block with Wok Tok's roster and
+    first-attempt scores. (2) as **`rksharma` (EMP-1001, a real employee,
+    not admin)**, logged in fresh, used "Customise this page" → "Add a
+    block" → "VRB LMS Leaderboard" himself (proving the `myaddinstance`
+    capability grant actually works for the `user` archetype, not just
+    admin who has every capability regardless), and confirmed it renders
+    correctly showing him ranked #1 in Veeba. (3) as **`priyagupta`
+    (EMP-1002, Wok Tok)**, an account that was never touched by hand,
+    confirmed after the "Reset Dashboard for all users" step that the
+    block now appears on her Dashboard automatically, with no per-account
+    action needed — this is what actually confirms the rollout mechanism
+    works for existing accounts, not just new ones.
+**Gotchas for future agents:**
+  - **`block_base` lives in `public/blocks/moodleblock.class.php`, not
+    `public/lib/blocklib.php`** — the latter is 2800+ lines but is
+    entirely `block_manager`/rendering-pipeline code, zero mention of
+    `block_base`. Grepping the wrong file first cost a few minutes this
+    session; grep across `public/` broadly (`grep -rl "class block_base"
+    public/`) rather than guessing the file from the name.
+  - **The ranked table genuinely overflowed the block's right edge and
+    lost two whole columns (Modules, Time) with no way to reach them** —
+    this was caught by an actual screenshot, not assumed from the HTML.
+    `html_writer::table()` output has no built-in overflow handling; a
+    6-column table does not fit a ~250-300px sidebar block. Fixed with
+    `.block_vrblms_leaderboard .content { overflow-x: auto; }` plus a
+    smaller/`white-space: nowrap` table in `custom.css` (same file/
+    mechanism as every other theme fix this project has made). This is
+    not "later branded design" scope creep — content that's silently
+    unreachable is a real bug, not a cosmetic one, especially given
+    PROJECT_CONTEXT.md's explicit mobile-responsiveness requirement.
+  - **`html_writer::select()` does not escape option labels** (only
+    optgroup labels — confirmed by reading its docblock and
+    implementation directly). Brand/state/city values are free-text,
+    DB-sourced strings (HR/CSV-imported), not a fixed enum, so
+    `block_vrblms_leaderboard.php` wraps every label in `s()` explicitly
+    before building the `$options` arrays passed to `render_select()`. If
+    adding more filter dropdowns later, don't assume `html_writer::select`
+    escapes for you.
+  - **"Reset Dashboard for all users"** (the button on
+    `/my/indexsys.php`) retroactively overwrites every existing user's
+    *already-customized* personal Dashboard layout back to the current
+    Default Dashboard page template — confirmed via the live progress bar
+    ("Resetting user dashboards to default... 100%") and by observing
+    `priyagupta`'s previously-existing dashboard change. This is a
+    genuinely broad, hard-to-reverse action (any per-user dashboard
+    customization is gone) — safe to use here only because all 20
+    accounts are this project's own test data with no real
+    customization to lose. **Do not reuse this against a live/production
+    user base without explicit confirmation** — it would wipe real
+    employees' personal dashboard layouts.
+  - The block's filters are plain GET-param page reloads
+    (`?vrbbrand=...&vrbstate=...&vrbcity=...&vrbstrategy=...`), not AJAX —
+    intentional, see "Why" above. If a future design pass wants
+    no-page-reload filtering, that would need the AMD/JS pipeline
+    verification that `ARCHITECTURE.md` explicitly flags as still open;
+    don't add AMD JS to this block without doing that verification first.
+  - Not done in this pass (out of scope per the user's explicit "only go
+    till leaderboard" instruction): `report_vrblms` (Phase 5, admin
+    CSV-exportable report) and the certificate-qualification trigger.
+    `local_vrblms\api` is already shaped to support both without changes.
+
+## [2026-08-21] — Leaderboard moved from sidebar block to its own page; role-based views; cross-brand "Overall"; a real SQL param-ordering bug found and fixed
+**Agent:** Claude Code
+**What:** At the user's explicit direction, replaced `block_vrblms_
+  leaderboard` (previous entry) with a dedicated page,
+  `public/local/vrblms/leaderboard.php`, with two distinct views gated by
+  a new capability:
+  - **`local/vrblms:viewfullleaderboard`** (new `db/access.php`,
+    CONTEXT_SYSTEM, `manager` archetype CAP_ALLOW — site admins already
+    bypass all capability checks, so this alone correctly gates
+    "admin-like" access without hardcoding `is_siteadmin()`, and leaves
+    room for a future non-admin manager role). Holders get the same
+    Brand/State/City/Ranking filter form the block had (relocated, not
+    duplicated, into a new `classes/output/leaderboard_view.php` helper
+    class), plus a new **"Overall (all brands)"** brand option.
+  - Everyone else gets a fixed, unfiltered view: one leaderboard section
+    per brand they actually belong to (via a new `api::get_user_brands()`
+    → `attempt_repository::get_user_brand_cohorts()`), plus one "Overall"
+    section — their own row highlighted (`.vrb-leaderboard-own-row`,
+    `custom.css`) in every table so "where am I" is immediate. Zero
+    filter controls anywhere on this path, per the user's explicit
+    "only the admin can change stuff like all states, city, brand."
+  - **"Overall" is a genuine cross-brand combined leaderboard** — one row
+    per employee, aggregating attempts across *every* brand course
+    they've taken, not per-brand-then-summed and not restricted to
+    employees sharing the same brand combination. New `attempt_
+    repository` methods (`get_all_brand_members()`, `get_all_brand_
+    quizzes()`, `get_distinct_states_all_brands()`, `get_distinct_
+    cities_all_brands()`) source this without touching the ranking layer
+    at all — `ranking_strategy::evaluate()` already only cares about "this
+    user's attempts" + "the relevant quiz set," so widening that set from
+    one brand to all of them required zero changes there. `api.php`'s
+    `get_leaderboard()` and the new `get_overall_leaderboard()` now share
+    one `build_ranked_rows()` private method (refactored out) instead of
+    duplicating the scoring/sorting/ranking block.
+  - **Discoverability:** new `public/local/vrblms/lib.php` implements
+    `local_vrblms_extend_navigation(global_navigation $navigation)`,
+    adding a "Leaderboard" primary-nav link for every logged-in user —
+    confirmed (not assumed) this legacy per-plugin callback is still
+    dispatched in this Moodle version, see gotcha below.
+  - **`block_vrblms_leaderboard` was fully removed** — `admin/cli/
+    uninstall_plugins.php --plugins=block_vrblms_leaderboard --run` (a
+    clean uninstall, not just deleting files) followed by deleting
+    `public/blocks/vrblms_leaderboard/` outright.
+**Why:** User's explicit direction: "instead of this [sidebar block],
+  let's do a change... We make leaderboard as a page of its own, only
+  the admin can change stuff like all states, city, brand for
+  themselves... an employee should see the leaderboard for his/her own,
+  they can see where they are on that specific course and overall... The
+  admin meanwhile can check leaderboard of specific course AND overall
+  too, filter by brands, state, city etc." A clarifying question resolved
+  two ambiguities before building: (1) the user explicitly said the
+  "per-course settings" idea from my first read was **not** wanted — they
+  just meant keep the existing Brand/State/City/Ranking filters as-is,
+  so no new per-brand config concept was built; (2) what "overall" means
+  was left to my judgment ("even I am not sure... I will let you make the
+  decision"), resolved as the union-based cross-brand design above,
+  chosen specifically because it satisfies the admin's own stated need
+  ("wanna see leaderboard of entire [company] to see which employee is
+  performing the best") with one mechanism, and because a single-brand
+  employee's "overall" then trivially degenerates to their one-brand
+  score (verified below), rather than needing special-casing.
+**Files touched:** New: `public/local/vrblms/{leaderboard.php, lib.php,
+  db/access.php, classes/output/leaderboard_view.php}`. Modified:
+  `public/local/vrblms/classes/api.php` (added `get_overall_leaderboard()`,
+  `get_overall_states()`, `get_overall_cities()`, `get_user_brands()`,
+  refactored shared logic into `build_ranked_rows()`); `public/local/
+  vrblms/classes/local/attempt_repository.php` (added the four
+  cross-brand methods above, **and fixed a param-ordering bug in four
+  existing methods — see gotcha below**); `public/local/vrblms/lang/en/
+  local_vrblms.php` (new strings); `public/local/vrblms/version.php`
+  (bumped, to register the new capability); `public/theme/vrblms/style/
+  custom.css` (swapped the old `.block_vrblms_leaderboard .content`
+  overflow rule for a page-scoped `.vrb-leaderboard-table-wrap` one, and
+  added the `.vrb-leaderboard-own-row` highlight). Deleted: `public/
+  blocks/vrblms_leaderboard/` (entire plugin, all files — never
+  committed to git, so nothing shows in `git status` for its removal).
+  Database: block plugin uninstalled cleanly (config_plugins/block rows
+  removed, all instances gone including the ones on the Default
+  Dashboard template and every reset user dashboard from the previous
+  entry); `local_vrblms` capability registered via `admin/cli/upgrade.php`.
+**Verification done:**
+  - `core_component::get_plugin_list('block')` confirmed `vrblms_
+    leaderboard` gone after uninstall+delete; `get_plugin_list('local')`
+    still resolves `vrblms` after adding `lib.php`/`db/access.php`.
+    `admin/cli/upgrade.php --non-interactive` registered the new
+    capability with no errors. `php -l` on every new/changed file before
+    ever loading it in a browser.
+  - Confirmed `navigation_node::add()`'s signature directly against
+    `lib/classes/navigation/navigation_node.php:390`, and confirmed the
+    legacy `local_*_extend_navigation()` callback is still dispatched by
+    grepping for where `get_plugin_list_with_function('local',
+    'extend_navigation')` is actually called
+    (`lib/classes/navigation/global_navigation.php:469`) — not assumed
+    from general Moodle knowledge, since this project has been burned by
+    exactly that kind of assumption before.
+  - **CLI verification script (scratchpad) caught a real bug before any
+    browser testing**, then re-run after the fix — see gotcha below for
+    the bug itself. Also confirmed: `get_overall_leaderboard()` returns
+    exactly 21 rows (20 imported employees + `testemployee1`, no
+    duplicates despite `kavitayadav` belonging to 3 cohorts — the `SELECT
+    DISTINCT` in `get_all_brand_members()` is doing its job); `rksharma`'s
+    overall score (100.00%) exactly matches his Veeba-only score even
+    though the denominator changed from 2 total quizzes to 6 — the
+    "single-brand overall == single-brand score" sanity check the design
+    was chosen to satisfy, confirmed empirically, not just argued for.
+  - Browser-verified as three real accounts, logged in fresh each time
+    (not admin-impersonated, not simulated):
+    - **admin**: full page with all four filters; defaults to "Overall
+      (all brands)"; switching Brand/State/City/Ranking via the
+      auto-submitting selects correctly re-queries (confirmed via
+      `?vrbbrand=brand_woktok&vrbstate=Maharashtra` showing exactly the
+      3 correct Maharashtra Wok Tok employees after the bug fix below);
+      "Leaderboard" nav link present and correctly routes here.
+    - **`rksharma`** (single-brand, Veeba): page shows exactly one
+      "Veeba" section + one "Overall" section, zero filter controls
+      anywhere, his own row visibly bold/highlighted in both tables
+      (confirmed the CSS class was actually applied and computed to the
+      intended `rgb(255, 243, 205)` background via `getComputedStyle()`,
+      not just assumed from the screenshot — the highlight is real but
+      visually subtle, screenshots alone didn't make it obvious).
+    - **`kavitayadav`** (multi-brand: Veeba + Wok Tok + Zyro): page shows
+      **three** brand sections (Veeba, Wok Tok, Zyro) plus one Overall
+      section, her own row highlighted in all four tables — this is the
+      concrete confirmation of the multi-brand "each course, and overall"
+      requirement from the user's original request, not just a
+      single-brand approximation of it.
+**Gotchas for future agents:**
+  - **Found and fixed a real, pre-existing SQL parameter-ordering bug**
+    while testing the new "Overall" state filter, in code originally
+    written during the Phase 3 entry above. `attempt_repository`'s
+    `SQL_PARAMS_QM` (`?`) queries build their `$params` array by
+    appending values in **code execution order** (cohortid/brand-match
+    first, then join-related params, then where-related params), but
+    Moodle's DB layer binds `?` placeholders by their **left-to-right
+    position in the final SQL text** — and in every affected method, the
+    `$joins` string (containing the state-filter's `fieldid = ?`
+    placeholder) is concatenated into the SQL **before** the `WHERE`
+    clause, while its param was being pushed into the array *after* the
+    cohortid/brand param. This silently mis-binds values whenever a state
+    filter is combined with a brand/cohort filter — `get_leaderboard
+    ('brand_woktok', 'Maharashtra')` returned **zero** rows (should be
+    3: `priyagupta`, `kavitayadav`, `vikramsingh`) because `cohortid` got
+    bound to the `fieldid = ?` slot and `statefieldid` got bound to the
+    `cohortid = ?` slot. **This went completely undetected in the Phase 3
+    verification pass** because the one state-filtered test case tried
+    there (`brand_veeba` + `Madhya Pradesh`) happened to work anyway —
+    Veeba's cohort id and the `state` profile field's id are both `1` in
+    this database, so the swapped bind values were coincidentally
+    identical and masked the bug entirely. **Fixed** in
+    `get_cohort_members()`, `get_distinct_cities()`, `get_all_brand_
+    members()`, and `get_distinct_cities_all_brands()` by tracking
+    `$joinparams` and `$whereparams` as separate arrays and merging them
+    join-first (`array_merge($joinparams, $whereparams)`) rather than
+    pushing everything into one array in code order. **If writing any
+    more raw-SQL methods in this file (or anywhere using `SQL_PARAMS_QM`
+    placeholders with a dynamically-built `$joins` string), verify the
+    params array matches the *rendered SQL text's* left-to-right
+    placeholder order, not the order the code happens to build them in —
+    and don't trust a single lucky-coincidence test case as proof a query
+    is correct.** `get_distinct_states()` and `get_distinct_states_all_
+    brands()` were never affected — they only ever have one join
+    placeholder and it was already ordered correctly relative to the one
+    where-clause placeholder.
+  - `html_table_row` (aliased as `\html_table_row`, real class at
+    `lib/table/classes/output/html_table_row.php`) supports per-row
+    `->attributes['class']` — this is how the own-row highlight is
+    applied; confirmed this before assuming `html_writer::table()`
+    offered per-row styling some other way.
+  - The "Reset Dashboard for all users" step from the previous entry is
+    now moot for the leaderboard specifically (the block that step
+    distributed no longer exists), but the Default Dashboard template
+    and every user's personal dashboard still have an empty/broken
+    reference to nothing in particular — Moodle's clean plugin uninstall
+    already removed the actual block instances as part of this session's
+    uninstall step, so there is nothing left to clean up; don't re-run
+    "Reset Dashboard for all users" expecting to find leftover block
+    instances, there aren't any.
+  - `report_vrblms` (Phase 5) and the certificate-qualification trigger
+    remain out of scope, not started.
