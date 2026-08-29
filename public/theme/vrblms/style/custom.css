@@ -17,10 +17,18 @@
  *   4. Front page / index hero
  *   5. Login page
  *   6. My courses (brand selection) grid
- *   7. Quiz attempt page
+ *   7. Quiz attempt page (distraction-free)
  *   8. Quiz review page
  *   9. Admin nav/settings tree blocks
  *  10. Leaderboard page (local_vrblms)
+ *  11. Course page — Topics format brand lift (Phase 5)
+ *  12. Quiz view / assessment instructions page (Phase 5)
+ *
+ * Phase 5 (course + quiz flow) is a deliberately conservative CSS-only
+ * pass — no course-format renderer override, no mod_quiz renderer
+ * subclass, no question-engine option restyling (all upgrade-fragile,
+ * flagged by Agents.md). Brand accent colour per course is keyed to the
+ * body.course-<id> class (Veeba=2, Wok Tok=3, Zyro=4) via --vrb-brand.
  */
 
 /* ============================================================
@@ -49,6 +57,11 @@
     --vrb-success: #28A745;
     --vrb-error: #BA1A1A;
 
+    /* Per-brand accent. Defaults to navy; re-pointed per course by the
+       body.course-<id> rules below so course + quiz pages pick up the
+       right brand colour without every rule repeating the id list. */
+    --vrb-brand: #000B43;
+
     --vrb-r-card: 8px;
     --vrb-r-control: 4px;
     --vrb-r-pill: 12px;
@@ -56,6 +69,14 @@
     --vrb-font: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto,
         "Helvetica Neue", Arial, sans-serif;
 }
+
+/* Brand accent per course. Moodle stamps body.course-<id> on every
+   course-context page (course view, mod pages, quiz attempt/review), so
+   this one place drives --vrb-brand for sections 7, 8, 11 and 12.
+   Environment-specific ids — update if the brand courses are rebuilt. */
+body.course-2 { --vrb-brand: var(--vrb-veeba); }
+body.course-3 { --vrb-brand: var(--vrb-woktok); }
+body.course-4 { --vrb-brand: var(--vrb-zyro); }
 
 /* ============================================================
    1. GLOBAL
@@ -664,12 +685,19 @@ body#page-login-index .login-languagemenu {
 
 /* ============================================================
    7. QUIZ ATTEMPT PAGE  (mod/quiz/attempt.php)
+   Distraction-free assessment canvas matching
+   docs/design_refer/veeba_learning_modules_vrb_learning_hub/screen.png
+   (== the "assessment" screen): drop the drawers, centre an ~800px
+   column, turn Moodle's floated .info sidebar into a "Question N" header,
+   and render the question as a white card (brand top bar) with bordered
+   option rows. The "Finish attempt" flow is unaffected — the last page's
+   bottom button is "Finish attempt ..." regardless of the nav block.
    ============================================================ */
 
-/* .qtext was rendering ~240px tall for one line of text — it wasn't
-   establishing its own block formatting context, so its height inflated
-   to clear a floated sibling (Moodle's .info panel). display:flow-root
-   fixes it at the source. */
+/* --- Shared .que fixes (attempt + review) ---
+   .qtext was rendering ~240px tall for one line — it wasn't establishing
+   its own block formatting context, so its height inflated to clear the
+   floated .info panel. display:flow-root fixes it at the source. */
 .que .qtext {
     display: flow-root;
     padding: 1.25rem 1.5rem;
@@ -685,9 +713,8 @@ body#page-login-index .login-languagemenu {
     padding-top: 0.25rem;
 }
 
-/* "Question N" heading uses Bootstrap's .h3 size (~26px) inside a
-   ~105-130px-wide column — forces an awkward "Question" / "1" wrap.
-   Sized down to fit on one line. */
+/* On review the .info stays a narrow left column — keep "Question N" from
+   wrapping to two lines. (The attempt page overrides all of this below.) */
 .que .info h4.h3 {
     font-size: 1.05rem;
     font-weight: 700;
@@ -702,6 +729,191 @@ body#page-login-index .login-languagemenu {
 .que .answer input[type="radio"],
 .que .answer input[type="checkbox"] {
     margin-right: 0.5rem;
+}
+
+/* --- Distraction-free canvas --- */
+body#page-mod-quiz-attempt #theme_boost-drawers-courseindex,
+body#page-mod-quiz-attempt #theme_boost-drawers-primary,
+body#page-mod-quiz-attempt #theme_boost-drawers-blocks,
+body#page-mod-quiz-attempt .drawer-toggles,
+body#page-mod-quiz-attempt .drawer-toggler,
+body#page-mod-quiz-attempt .btn.drawertoggle,
+body#page-mod-quiz-attempt .tertiary-navigation,
+body#page-mod-quiz-attempt .activity-navigation {
+    display: none !important;
+}
+
+/* Drop the drawer-open offsets and re-centre. margin-inline:auto both
+   cancels the left/right drawer margins and restores the .limitedwidth
+   layout's own centring (which a flat margin:0 would break). */
+body#page-mod-quiz-attempt #page.drawers {
+    margin-inline: auto !important;
+}
+
+body#page-mod-quiz-attempt #region-main {
+    max-width: 820px;
+    margin-inline: auto;
+}
+
+body#page-mod-quiz-attempt #responseform {
+    padding-top: 0.5rem;
+}
+
+/* --- Question header (Moodle's floated .info → a full-width header) --- */
+body#page-mod-quiz-attempt .que {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+body#page-mod-quiz-attempt .que .info {
+    float: none;
+    width: 100%;
+    padding: 0 0 0.75rem;
+    margin: 0 0 1.25rem;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    /* Moove gives .info its own tinted panel + radius — flatten it to a
+       plain header with just a rule underneath. */
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid var(--vrb-border);
+    border-radius: 0;
+}
+
+body#page-mod-quiz-attempt .que .info > div:first-child {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    flex: 1 1 auto;
+}
+
+body#page-mod-quiz-attempt .que .info h4.h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--vrb-text);
+    margin: 0;
+    white-space: normal;
+    width: auto;
+}
+
+body#page-mod-quiz-attempt .que .info .state,
+body#page-mod-quiz-attempt .que .info .grade {
+    font-size: 0.8rem;
+    color: var(--vrb-muted);
+    margin: 0;
+}
+
+body#page-mod-quiz-attempt .que .info .questionflag {
+    margin-left: auto;
+    font-size: 0.8rem;
+}
+
+/* --- Question card --- */
+body#page-mod-quiz-attempt .que .content {
+    overflow: visible;
+}
+
+body#page-mod-quiz-attempt .que .formulation {
+    background: #ffffff;
+    border: 1px solid var(--vrb-border);
+    border-top: 3px solid var(--vrb-brand);
+    border-radius: var(--vrb-r-card);
+    padding: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+body#page-mod-quiz-attempt .que .qtext {
+    padding: 0 0 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--vrb-navy);
+}
+
+body#page-mod-quiz-attempt .que .ablock {
+    margin: 0;
+}
+
+/* --- Option rows --- */
+body#page-mod-quiz-attempt .que .answer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+body#page-mod-quiz-attempt .que .answer > div {
+    margin: 0;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-control);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+body#page-mod-quiz-attempt .que .answer > div:hover {
+    border-color: var(--vrb-brand);
+    background: #f8f9fa;
+}
+
+/* Selected row — :has() is well-supported; without it the row just
+   doesn't highlight (the red radio still shows the choice). */
+body#page-mod-quiz-attempt .que .answer > div:has(input:checked) {
+    border-color: var(--vrb-brand);
+    background: #f3f4f5;
+}
+
+body#page-mod-quiz-attempt .que .answer input[type="radio"],
+body#page-mod-quiz-attempt .que .answer input[type="checkbox"] {
+    accent-color: var(--vrb-brand);
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+body#page-mod-quiz-attempt .que .answer > div label {
+    margin: 0;
+    flex: 1 1 auto;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--vrb-text);
+    padding: 0.1rem 0;
+}
+
+/* --- Prev / Next --- */
+body#page-mod-quiz-attempt .submitbtns {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+body#page-mod-quiz-attempt .submitbtns .mod_quiz-next-nav {
+    margin-left: auto;
+}
+
+body#page-mod-quiz-attempt .mod_quiz-prev-nav.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--vrb-border);
+    color: var(--vrb-text-2);
+}
+
+body#page-mod-quiz-attempt .mod_quiz-prev-nav.btn-secondary:hover {
+    background: #f8f9fa;
+    color: var(--vrb-text);
+}
+
+body#page-mod-quiz-attempt .mod_quiz-next-nav.btn-primary,
+body#page-mod-quiz-attempt .mod_quiz-next-nav.btn-primary:focus {
+    background: var(--vrb-navy);
+    border-color: var(--vrb-navy);
+    padding-inline: 2rem;
 }
 
 /* ============================================================
@@ -732,6 +944,347 @@ body#page-login-index .login-languagemenu {
 .moove-infobox-content--small {
     font-weight: 600;
     color: var(--vrb-navy);
+}
+
+/* --- Distraction-free canvas (mirror the attempt page) ---
+   The quiz_review / quiz_results mocks are a narrow centred column with
+   no course-index or quiz-navigation rail. "Finish review" still works —
+   there is a second one at the end of the page content, styled below. */
+body#page-mod-quiz-review #theme_boost-drawers-courseindex,
+body#page-mod-quiz-review #theme_boost-drawers-primary,
+body#page-mod-quiz-review #theme_boost-drawers-blocks,
+body#page-mod-quiz-review .drawer-toggles,
+body#page-mod-quiz-review .drawer-toggler,
+body#page-mod-quiz-review .btn.drawertoggle,
+body#page-mod-quiz-review .tertiary-navigation,
+body#page-mod-quiz-review .activity-navigation {
+    display: none !important;
+}
+
+body#page-mod-quiz-review #page.drawers {
+    margin-inline: auto !important;
+}
+
+body#page-mod-quiz-review #region-main {
+    max-width: 860px;
+    margin-inline: auto;
+}
+
+/* --- Results banner (score ring + pass/fail) ---
+   Injected by theme/vrblms/javascript/quizresult.js at the top of the
+   review page — the post-submit landing. Matches
+   docs/design_refer/quiz_results_vrb_learning_hub/screen.png. The pass
+   threshold is fixed at 60% in the JS (this environment's uniform
+   grade-to-pass); the review page carries no pass-mark element. */
+.vrb-qr-result {
+    background: var(--vrb-card);
+    border: 1px solid var(--vrb-border);
+    border-top: 3px solid var(--vrb-success);
+    border-radius: var(--vrb-r-card);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.vrb-qr-result--fail {
+    border-top-color: var(--vrb-error);
+}
+
+.vrb-qr-ring {
+    position: relative;
+    width: 8rem;
+    height: 8rem;
+    margin: 0 auto 1.25rem;
+}
+
+.vrb-qr-ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.vrb-qr-ring-track {
+    fill: none;
+    stroke: var(--vrb-border);
+    stroke-width: 10;
+}
+
+.vrb-qr-ring-arc {
+    fill: none;
+    stroke: var(--vrb-success);
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease;
+}
+
+.vrb-qr-result--fail .vrb-qr-ring-arc {
+    stroke: var(--vrb-error);
+}
+
+.vrb-qr-pct {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--vrb-success);
+}
+
+.vrb-qr-result--fail .vrb-qr-pct {
+    color: var(--vrb-error);
+}
+
+.vrb-qr-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--vrb-navy);
+    margin: 0 0 0.35rem;
+}
+
+.vrb-qr-sub {
+    color: var(--vrb-text-2);
+    margin: 0 0 1.25rem;
+}
+
+.vrb-qr-stats {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 1.5rem 2.5rem;
+    background: #f3f4f5;
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-control);
+    padding: 0.85rem 1.5rem;
+}
+
+.vrb-qr-stats > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.vrb-qr-stats span {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--vrb-muted);
+}
+
+.vrb-qr-stats strong {
+    color: var(--vrb-text);
+    font-weight: 700;
+}
+
+.vrb-qr-reviewhead {
+    margin: 0.5rem 0 1.25rem;
+}
+
+.vrb-qr-reviewhead h3 {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--vrb-navy);
+    margin: 0 0 0.25rem;
+}
+
+.vrb-qr-reviewhead p {
+    color: var(--vrb-text-2);
+    margin: 0;
+}
+
+/* --- Summary strip → compact bordered card (design: quiz_review) --- */
+body#page-mod-quiz-review .moove-quizreviewsummary {
+    background: var(--vrb-card);
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-card);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+/* --- Question card + header (mirror the attempt-page .info transform) --- */
+body#page-mod-quiz-review .que {
+    background: var(--vrb-card);
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-card);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+body#page-mod-quiz-review .que.correct { border-left: 4px solid var(--vrb-success); }
+body#page-mod-quiz-review .que.incorrect,
+body#page-mod-quiz-review .que.notanswered { border-left: 4px solid var(--vrb-error); }
+body#page-mod-quiz-review .que.partiallycorrect { border-left: 4px solid var(--vrb-warm); }
+
+body#page-mod-quiz-review .que .info {
+    float: none;
+    width: 100%;
+    padding: 0 0 0.75rem;
+    margin: 0 0 1.25rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--vrb-border);
+    border-radius: 0;
+}
+
+body#page-mod-quiz-review .que .info > div:first-child {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    flex: 1 1 auto;
+}
+
+body#page-mod-quiz-review .que .info h4.h3 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--vrb-muted);
+    margin: 0;
+    white-space: nowrap;
+}
+
+body#page-mod-quiz-review .que .info .state {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+body#page-mod-quiz-review .que.correct .info .state { color: var(--vrb-success); }
+body#page-mod-quiz-review .que.incorrect .info .state,
+body#page-mod-quiz-review .que.notanswered .info .state { color: var(--vrb-error); }
+
+/* "Mark X / Y" → pill, pushed right. */
+body#page-mod-quiz-review .que .info .grade {
+    margin-left: auto;
+    font-size: 0.78rem;
+    color: var(--vrb-text-2);
+    background: #f3f4f5;
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-pill);
+    padding: 0.2rem 0.7rem;
+    white-space: nowrap;
+}
+
+body#page-mod-quiz-review .que .info .questionflag {
+    font-size: 0.8rem;
+}
+
+/* .formulation is now inside the .que card — flatten it. */
+body#page-mod-quiz-review .que .content { overflow: visible; }
+
+body#page-mod-quiz-review .que .formulation {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+}
+
+body#page-mod-quiz-review .que .qtext {
+    padding: 0 0 1.25rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--vrb-navy);
+}
+
+body#page-mod-quiz-review .que .ablock { margin: 0; }
+
+/* --- Option rows with correct / incorrect state --- */
+body#page-mod-quiz-review .que .answer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+body#page-mod-quiz-review .que .answer > div {
+    margin: 0;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-control);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+body#page-mod-quiz-review .que .answer > div label {
+    margin: 0;
+    flex: 1 1 auto;
+    color: var(--vrb-text);
+}
+
+/* Hide the attempt-time radio/checkbox inputs on review — state is shown
+   by the row colour + core's feedback icon. */
+body#page-mod-quiz-review .que .answer > div input[type="radio"],
+body#page-mod-quiz-review .que .answer > div input[type="checkbox"] {
+    display: none;
+}
+
+body#page-mod-quiz-review .que .answer > div.correct {
+    border-color: var(--vrb-success);
+    background: rgba(40, 167, 69, 0.06);
+}
+
+body#page-mod-quiz-review .que .answer > div.correct label {
+    color: #176a2c;
+}
+
+body#page-mod-quiz-review .que .answer > div.incorrect {
+    border-color: var(--vrb-error);
+    background: rgba(186, 26, 26, 0.05);
+}
+
+body#page-mod-quiz-review .que .answer > div.incorrect label {
+    color: var(--vrb-error);
+}
+
+/* Core's per-option feedback icon (check / cross) → right-aligned. */
+body#page-mod-quiz-review .que .answer > div .icon,
+body#page-mod-quiz-review .que .answer > div .specificfeedback {
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* "The correct answer is ..." feedback → calm surface panel. Core wraps
+   it in .outcome with a peach warning tint — flatten that so our panel
+   is the container. */
+body#page-mod-quiz-review .que .outcome {
+    background: transparent;
+    border: 0;
+    padding: 0;
+}
+
+body#page-mod-quiz-review .que .feedback {
+    background: #f3f4f5;
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-control);
+    padding: 0.85rem 1rem;
+    margin-top: 1.25rem;
+    color: var(--vrb-text-2);
+}
+
+body#page-mod-quiz-review .que .feedback .rightanswer {
+    color: var(--vrb-text-2);
+}
+
+/* "Finish review" → outline button (design: "Back to results"). */
+body#page-mod-quiz-review a.mod_quiz-next-nav {
+    display: inline-block;
+    margin: 1.5rem 0;
+    padding: 0.55rem 1.5rem;
+    border: 1px solid var(--vrb-navy);
+    border-radius: var(--vrb-r-control);
+    color: var(--vrb-navy);
+    background: var(--vrb-card);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+body#page-mod-quiz-review a.mod_quiz-next-nav:hover {
+    background: var(--vrb-navy);
+    color: #ffffff;
 }
 
 /* ============================================================
@@ -941,4 +1494,116 @@ body#page-login-index .login-languagemenu {
 
 .vrb-leaderboard-own-row td:first-child {
     box-shadow: inset 4px 0 0 var(--vrb-navy);
+}
+
+/* ============================================================
+   11. COURSE PAGE — TOPICS FORMAT BRAND LIFT  (Phase 5, Option A)
+   Target: docs/design_refer/veeba_learning_modules_vrb_learning_hub/
+   CSS-only pass over the stock Topics accordion — no course-format
+   renderer / format plugin (upgrade-fragile, flagged by Agents.md).
+   Section wrapper = li.section.course-section.main ; brand accent via
+   --vrb-brand (keyed to body.course-<id> at the top of this file).
+   ============================================================ */
+
+body#page-course-view-topics .course-section.main {
+    background: var(--vrb-card);
+    border: 1px solid var(--vrb-border);
+    border-left: 4px solid var(--vrb-brand);
+    border-radius: var(--vrb-r-card);
+    padding: 0.75rem 1.25rem 1rem;
+    margin-bottom: 1.25rem;
+    box-shadow: none;
+}
+
+body#page-course-view-topics .course-section .sectionname,
+body#page-course-view-topics .course-section h3.sectionname {
+    color: var(--vrb-navy);
+    font-weight: 600;
+}
+
+/* Activity rows → flat bordered list items with a hover lift. */
+body#page-course-view-topics .course-section .activity-item {
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-control);
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.5rem;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+body#page-course-view-topics .course-section .activity-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+}
+
+body#page-course-view-topics .activity-item .activityname a,
+body#page-course-view-topics .activity-item .instancename {
+    color: var(--vrb-navy);
+    font-weight: 500;
+}
+
+/* Completion pill ("Done" / "To do"). */
+body#page-course-view-topics .activity-item .badge,
+body#page-course-view-topics .activity-item .completion-dropdown .btn {
+    border-radius: var(--vrb-r-pill);
+}
+
+/* Restriction / lock notice ("Not available unless ..."). Not page-scoped
+   — the same markup can surface on activity pages too. */
+.availabilityinfo {
+    background: var(--vrb-surface);
+    border: 1px solid var(--vrb-border);
+    border-left: 3px solid var(--vrb-muted);
+    border-radius: var(--vrb-r-control);
+    padding: 0.5rem 0.75rem;
+    color: var(--vrb-text-2);
+    font-size: 0.9rem;
+}
+
+.availabilityinfo .badge {
+    background: var(--vrb-muted);
+    color: #ffffff;
+}
+
+/* ============================================================
+   12. QUIZ VIEW / ASSESSMENT INSTRUCTIONS PAGE  (mod/quiz/view.php)
+   Target: docs/design_refer/assessment_instructions_vrb_learning_hub/
+   ============================================================ */
+
+/* The "Attempts allowed / Grading method / Grade to pass" block → a
+   bordered summary card with a brand edge. */
+body#page-mod-quiz-view .quizinfo {
+    background: var(--vrb-card);
+    border: 1px solid var(--vrb-border);
+    border-left: 4px solid var(--vrb-brand);
+    border-radius: var(--vrb-r-card);
+    padding: 1rem 1.25rem !important;
+    margin: 1.25rem 0;
+}
+
+body#page-mod-quiz-view .quizinfo p {
+    margin-bottom: 0.35rem;
+}
+
+body#page-mod-quiz-view .quizinfo p:last-child {
+    margin-bottom: 0;
+}
+
+/* Each past attempt → its own flat card. */
+body#page-mod-quiz-view .moove-summary-table {
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-card);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+}
+
+/* "Start assessment" → brand colour (navy on non-brand courses). */
+body#page-mod-quiz-view .quizstartbuttondiv .btn-primary,
+body#page-mod-quiz-view .quizstartbuttondiv .btn-primary:focus {
+    background: var(--vrb-brand);
+    border-color: var(--vrb-brand);
+    color: #ffffff;
+}
+
+body#page-mod-quiz-view .quizstartbuttondiv .btn-primary:hover {
+    filter: brightness(0.92);
 }

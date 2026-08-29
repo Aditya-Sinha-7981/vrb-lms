@@ -122,6 +122,11 @@ not just a directory listing.
 - Don't hardcode the leaderboard ranking formula — must stay config-driven
   per `docs/PROJECT_CONTEXT.md` and `docs/TASKS.md`.
 - Only commit to git when the user explicitly asks.
+- Don't add a persistent left-hand sidebar nav to the employee UI, and
+  don't add a `$THEME->layouts` override / new layout file to `theme_vrblms`
+  to build one. A few `docs/design_refer/` mockups show a dark left rail;
+  the approved direction (user, 2026-08-30) is to keep Moove's top navbar +
+  drawers and brand it through `custom.css` + Mustache overrides only.
 
 ## Current phase
 

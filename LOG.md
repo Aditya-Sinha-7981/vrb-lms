@@ -2022,3 +2022,234 @@ this file and not need the full prior conversation re-explained.
     `lib.php`'s drawer callback.
   - Adding/altering `db/hooks.php` requires a plugin version bump or the
     new callback is not picked up.
+
+## [2026-08-30] — Employee-UI Phase 5: course page + quiz flow (CSS-only, Option A)
+**Agent:** Claude Code
+**What:** Conservative brand lift of the Topics course page and the quiz
+  flow (view / attempt / review) — entirely in `theme_vrblms/style/custom.css`.
+  Per the user's call (2026-08-30) this is "Option A": no course-format
+  renderer override, no `format_vrblms` plugin, no `mod_quiz` renderer
+  subclass, no question-engine option restyling — all flagged as
+  upgrade-fragile in `Agents.md`. The `veeba_learning_modules` design
+  `screen.png` is a broken 28-byte placeholder; worked from its `code.html`.
+  - **New token `--vrb-brand`** (default navy) re-pointed per course via
+    `body.course-2 / -3 / -4` → Veeba red / Wok Tok orange / Zyro teal.
+    Moodle stamps `body.course-<id>` on every course-context page, so this
+    one place drives the accent for sections 7, 8, 11, 12. Verified:
+    `getComputedStyle(body).--vrb-brand` = `#E31E24` on course 2,
+    `#F37021` on course 3, `#008080` on course 4.
+  - **Section 7 (quiz attempt) — distraction-free.** On
+    `body#page-mod-quiz-attempt`: `display:none` on
+    `#theme_boost-drawers-courseindex`, `#theme_boost-drawers-primary`,
+    `#theme_boost-drawers-blocks` (the Quiz-navigation block), `.drawer-toggles`,
+    `.drawer-toggler`, `.btn.drawertoggle`; `#page.drawers { margin-inline:
+    auto !important }` to drop the drawer offsets AND keep the
+    `.limitedwidth` centring (a flat `margin:0` pinned content left of
+    centre — see gotcha); `#region-main { max-width:820px; margin-inline:auto }`;
+    3px `--vrb-brand` top accent bar on `#responseform`; hide the
+    inter-activity `.activity-navigation`. The "Finish attempt" flow is
+    unaffected — the final page's bottom button is "Finish attempt ..."
+    regardless of the nav block (verified on the 2-page Module 2 Quiz).
+  - **Section 8 (quiz review) — extended.** `.moove-quizreviewsummary`
+    → bordered 8px card (scoped to `#page-mod-quiz-review` so it doesn't
+    double-border the same-class per-attempt boxes on the quiz *view*
+    page); per-question status accent as a `border-left` on `.formulation`
+    keyed to core's `.que.correct / .incorrect / .notanswered /
+    .partiallycorrect`; `.que .outcome` flattened (it has a peach warning
+    tint by default) and `.que .feedback` restyled to a calm `#f3f4f5`
+    panel with `--vrb-text-2` text.
+  - **Section 11 (new) — course page Topics brand lift.**
+    `body#page-course-view-topics .course-section.main` → white flat card,
+    1px border, 4px `--vrb-brand` left edge, 8px radius; `.sectionname`
+    navy 600; `.activity-item` → bordered list rows with hover lift;
+    completion pills → pill radius. `.availabilityinfo` (NOT page-scoped —
+    also fires on activity pages) → grey surface panel, muted left border,
+    muted badge. Verified with a real restriction: Zyro Module 2 shows
+    "Not available unless: The activity Module 1 Quiz is complete and
+    passed" in the new panel, lock glyph intact.
+  - **Section 12 (new) — quiz view / instructions page.**
+    `body#page-mod-quiz-view`: `.quizinfo` (Attempts allowed / Grading
+    method / Grade to pass) → bordered card with `--vrb-brand` left edge;
+    `.moove-summary-table` per-attempt → flat card; `.quizstartbuttondiv
+    .btn-primary` → `--vrb-brand` fill (so "Attempt quiz" / "Continue your
+    attempt" is Veeba-red in the Veeba course, navy elsewhere).
+  - Header comment section index updated; `version.php` → `2026083002`.
+  - **`Agents.md` + `CLAUDE.md`:** added a rule (user request) — do not
+    add a persistent left-hand sidebar nav to the employee UI and do not
+    add a `$THEME->layouts` override to build one; some `design_refer`
+    mockups show a dark left rail, the approved direction is to keep
+    Moove's top navbar + drawers and brand via CSS + Mustache only.
+**Files touched:** `public/theme/vrblms/style/custom.css`,
+  `public/theme/vrblms/version.php`, `Agents.md`, `CLAUDE.md`.
+**Verification done:** `php -l` (docker) on `version.php`;
+  `admin/cli/upgrade.php --non-interactive` → `theme_vrblms ++ Success ++`;
+  `purge_caches.php` after every change. Live browser (localhost:8080,
+  desktop 1512):
+  - `rksharma` (Veeba only): course 2 sections = white cards, Veeba-red
+    left accent (`rgb(227,30,36)`), 8px radius, bordered activity rows;
+    quiz view (id 3) `.quizinfo` red-edged card + red "Continue your
+    attempt" button; quiz attempt (id 3) = both left drawers + right quiz-nav
+    drawer gone, `#region-main` 820px centred (x=530, right=530), red 3px
+    accent bar, no bottom activity nav, navy "Next page", last page shows
+    "Finish attempt ..."; quiz review (attempt 6) = summary card, green
+    per-question accent, grey (not peach) "correct answer" panel.
+  - `kavitayadav` (multi-brand): course 4 (Zyro) sections = teal
+    (`rgb(0,128,128)`) left accent; Module 2 locked notice renders in the
+    new `.availabilityinfo` panel.
+**Gotchas for future agents:**
+  - `body.course-<id>` is on every course/mod/quiz page — the cleanest
+    hook for per-brand accent (Veeba=2, Wok Tok=3, Zyro=4). Env-specific;
+    revisit if the courses are rebuilt.
+  - On `#page-mod-quiz-attempt` the `.limitedwidth` layout centres `#page`
+    with `margin-inline:auto`; the drawer-open state adds `margin-left:
+    <drawer-width>`. To reclaim the space you must re-assert
+    `margin-inline:auto !important`, NOT `margin:0` — the latter pins the
+    column left of centre.
+  - The quiz *view* page's per-attempt boxes carry the SAME
+    `.moove-quizreviewsummary` class as the review page's summary strip —
+    scope any card treatment of it to `#page-mod-quiz-review` /
+    `#page-mod-quiz-view` respectively.
+  - `.que .outcome` (the general-feedback wrapper on the review page) has
+    a peach `rgb(252,239,220)` tint + padding by default — flatten it if
+    you want the inner `.feedback` to be the visible panel.
+  - Course/quiz page structure confirmed: courses 2/3/4 are `topics`
+    format; section wrapper is `li.section.course-section.main#section-N`;
+    Moove also emits decorative `.section.m-0.p-0.img-text` separators —
+    target `.course-section.main`, not bare `.section`.
+  - Phase 5's course/module-list design (the 3-col module-card grid with
+    cover art / status pills / per-module progress) is NOT reproducible
+    CSS-only — it needs a course-format renderer. Explicitly out of scope
+    for this pass; the CSS lift brands the stock accordion instead.
+
+## [2026-08-30] — Employee-UI Phase 5 follow-up: quiz attempt page pushed to the "assessment" design
+**Agent:** Claude Code
+**What:** The user supplied the real
+  `docs/design_refer/veeba_learning_modules_vrb_learning_hub/screen.png`
+  (the earlier 28-byte placeholder) — it is actually the **assessment /
+  quiz-attempt** screen (same content as `assessment_vrb_learning_hub/
+  code.html`), not a module list. Reworked Section 7 of
+  `theme_vrblms/style/custom.css` to match it, still CSS-only, still
+  scoped to `body#page-mod-quiz-attempt`.
+  - **`.info` sidebar → question header.** Moodle floats `.que .info`
+    (Question N / state / mark / flag) as a ~112px left column. Now
+    `float:none; width:100%; display:flex` — "Question N" as a 1.5rem
+    heading, state + mark as small `--vrb-muted` meta, "Flag question"
+    pushed right, a 2px `--vrb-border` rule underneath. Moove's tinted
+    panel bg/border/radius on `.info` explicitly flattened.
+  - **Question card.** `.que .formulation` → white, 1px `--vrb-border`,
+    3px `--vrb-brand` top edge, 8px radius, 2rem padding, faint shadow
+    (overrides the shared `#f7f9fc` base, which still applies on review).
+    `.qtext` → 1.5rem/600 navy heading, no inner padding.
+  - **Option rows.** `.que .answer` → `flex-direction:column; gap`;
+    each `.answer > div` → 1px bordered `rounded` row, `:hover` =
+    `--vrb-brand` border, `div:has(input:checked)` = `--vrb-brand`
+    border + `#f3f4f5` fill; radios get `accent-color:var(--vrb-brand)`
+    (checked dot renders red) and the `<label>` is `flex:1` so most of
+    the row is a click target. `:has()` is relied on — without it the
+    row just doesn't tint, the red radio still shows the choice.
+  - **Prev / Next.** `.submitbtns` → `display:flex; justify-content:
+    space-between`; `.mod_quiz-prev-nav` → transparent + 1px border +
+    muted text; `.mod_quiz-next-nav` stays navy, wider padding.
+  - **`.tertiary-navigation`** ("Back" button) added to the
+    already-hidden list — the design has only the header close icon.
+  - Dropped the old `#responseform { border-top:3px }` (it drew a stray
+    red line above the header once "Back" was gone); `#responseform` now
+    just gets a little `padding-top`.
+  - `version.php` → `2026083003`.
+**Files touched:** `public/theme/vrblms/style/custom.css` (Section 7 rewrite),
+  `public/theme/vrblms/version.php`.
+**Verification done:** `admin/cli/upgrade.php --non-interactive` →
+  `theme_vrblms ++ Success ++`; `purge_caches.php`. Live as `rksharma`,
+  resumed the in-progress Module 2 attempt: page 1 (T/F) and page 2 both
+  render the centred ~800px column, "Question N" header + divider, white
+  card with red top bar + bold navy question, bordered option rows;
+  selecting "False" gives a red-filled radio + red-bordered `#f3f4f5`
+  row (`:has()` confirmed working); page 2 shows outline "Previous page"
+  left + navy "Finish attempt ..." right. `#page-mod-quiz-review`
+  re-checked — unchanged (all new rules are attempt-scoped).
+**Gotchas for future agents:**
+  - This screenshot file is misnamed — `veeba_learning_modules_*/screen.png`
+    is the quiz-attempt design, matching `assessment_vrb_learning_hub/
+    code.html`. There is still NO real module-list screenshot.
+  - "Question 4 of 10", the % progress bar and the "Time Elapsed" pill in
+    that design have no data source on `mod/quiz/attempt.php` once the
+    quiz-navigation block is hidden (and this quiz has no time limit), so
+    they were not reproduced — the "Question N" header + rule stands in.
+  - `.que .info` carries a Moove tinted-panel style (bg `#F8F9FA` + border
+    + radius); flatten bg/border/radius, not just the float, or the header
+    reads as a stray box.
+
+## [2026-08-30] — Employee-UI Phase 5 follow-up 2: quiz review + results screens
+**Agent:** Claude Code
+**What:** Matched `docs/design_refer/quiz_review_vrb_learning_hub/screen.png`
+  and `.../quiz_results_vrb_learning_hub/screen.png`. Both live on
+  `mod/quiz/review.php` (the post-submit landing — Moodle has no separate
+  results page), so one page carries both treatments stacked.
+  - **First theme JS.** New `public/theme/vrblms/javascript/quizresult.js`,
+    declared `$THEME->javascripts_footer = ['quizresult']` in
+    `config.php`. Plain footer script, no AMD build, no core edits. It
+    early-returns on any body id != `page-mod-quiz-review` (inert
+    everywhere else — confirmed on the dashboard). On the review page it
+    reads the grade Moove already renders in
+    `.moove-quizreviewsummary` (`Grade` box "<b>X</b> out of Y", plus
+    `Marks` and `Duration`), computes the percent, and injects a
+    `.vrb-qr-result` banner before the summary: an SVG score ring
+    (dasharray = 2πr, r=45; offset = C·(1−pct/100)), a pass/fail heading
+    ("Module passed" / "Not quite — 60% needed to pass"), a sub-line, and
+    a Score/Time stat panel. It then `.hidden`s the verbose Moove strip
+    (the banner already carries score + time) and prepends a
+    "Review your answers" + subtitle heading before the first `.que`.
+    **Pass threshold is hardcoded 60%** in the JS — the review page has
+    no grade-to-pass element; 60% is this environment's uniform pass mark
+    across all three brand quizzes (see earlier LOG entries). If quizzes
+    ever get differing pass marks this needs the real value
+    (server-side / a mod_quiz renderer).
+  - **`custom.css` section 8 rewrite.** Review page now gets the same
+    distraction-free canvas as the attempt page (drawers +
+    quiz-navigation block + tertiary/activity nav hidden, `#page` re-
+    centred, `#region-main` capped at 860px — "Finish review" still works
+    via the copy at the end of the page content, styled as an outline
+    button). `.info` → full-width header ("QUESTION N" uppercase muted,
+    `.state` coloured by result, `.grade` → pill pushed right, bottom
+    rule). `.que` → white card with a 4px `--vrb-success` /
+    `--vrb-error` / `--vrb-warm` left edge from core's
+    `.correct`/`.incorrect`/`.partiallycorrect`; `.formulation` inside
+    flattened. Option rows: `.answer > div` bordered, `div.correct` →
+    green border + tint + core's check icon right-aligned, `div.incorrect`
+    → red border + tint + cross icon; the attempt-time radio/checkbox
+    inputs are `display:none` on review. `.feedback` panel kept
+    (`#f3f4f5`). Plus all the `.vrb-qr-*` banner styles.
+  - `version.php` → `2026083004` (needed for the new
+    `$THEME->javascripts_footer`).
+**Files touched:** `public/theme/vrblms/javascript/quizresult.js` (new),
+  `public/theme/vrblms/config.php`, `public/theme/vrblms/style/custom.css`
+  (section 8), `public/theme/vrblms/version.php`.
+**Verification done:** `php -l` config.php; `node --check` the JS;
+  `admin/cli/upgrade.php --non-interactive` → `theme_vrblms ++ Success ++`;
+  `purge_caches.php` per change. Live as `rksharma`, both real attempts of
+  Module 1 Quiz:
+  - attempt 1 (0/4): red-topped banner, empty ring + red "0%", "Not quite
+    — 60% needed to pass", Score 0.00/4.00 / Time 42 secs; question cards
+    red-accented, "Incorrect" red, "Mark 0.00 out of 1.00" pill, the
+    wrongly-chosen option red-bordered + tinted + red ✗ icon, correct
+    answer in the grey feedback panel.
+  - attempt 6 (4/4): green-topped banner, full green ring + "100%",
+    "Module passed"; cards green-accented, "Correct" green, correct option
+    green-bordered + tinted + green ✓ icon.
+  Moove summary strip hidden on both; "Finish review" renders as an
+  outline button at the page end. Attempt page re-checked (unchanged —
+  all review rules are `#page-mod-quiz-review` scoped); dashboard
+  re-checked (JS no-ops, no console errors).
+**Gotchas for future agents:**
+  - For True/False questions in deferred-feedback mode Moodle marks only
+    the wrongly-chosen option `.incorrect` — it does NOT add `.correct` to
+    the unchosen right option, so the green "correct" row only appears on
+    question types where core marks it (e.g. multichoice). The
+    "The correct answer is ..." feedback line always covers it.
+  - `$THEME->javascripts_footer` loads on every page; gate the script by
+    `document.body.id` inside the file, not by hoping Moodle scopes it.
+  - Adding `$THEME->javascripts_footer` needs a theme version bump for
+    Moodle to re-read config.php.
+  - The review page has no grade-to-pass in the DOM — `view.php`'s
+    `.quizinfo` does ("Grade to pass: 60.00 out of 100.00") if a future
+    change needs the real threshold there.

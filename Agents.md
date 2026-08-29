@@ -171,3 +171,10 @@ session). Do not repeat it.
   decision in ARCHITECTURE.md is resolved.
 - Do not hardcode the leaderboard ranking formula — it must be
   config-driven per ARCHITECTURE.md and TASKS.md.
+- Do not introduce a persistent left-hand sidebar nav for the
+  employee-facing UI, and do not add a `$THEME->layouts` override / new
+  layout file in `theme_vrblms` to get one. Some `docs/design_refer/`
+  mockups (e.g. `veeba_learning_modules_*`) show a 240px dark left rail;
+  the client-approved direction is to keep Moove's existing top navbar +
+  drawers chrome and brand it via `custom.css` + Mustache overrides only.
+  Confirmed with the user 2026-08-30 (Employee-UI Phase 5).
