@@ -8,6 +8,8 @@ $string['strategy_best'] = 'Best attempt per quiz';
 $string['strategy_first'] = 'First attempt per quiz';
 
 $string['leaderboard'] = 'Leaderboard';
+$string['pageheading'] = 'Regional Leaderboard';
+$string['pagesubtitle'] = 'See how you rank across the organisation.';
 $string['filterbrand'] = 'Brand';
 $string['filterstate'] = 'State';
 $string['filtercity'] = 'City';

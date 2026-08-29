@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Veeba Brand Masterclass - Module Content View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "border-subtle": "#E9ECEF",
+                        "surface-container-highest": "#e1e3e4",
+                        "primary": "#000b43",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f3f4f5",
+                        "veeba-red": "#E31E24",
+                        "primary-fixed": "#dee1ff",
+                        "inverse-primary": "#b9c3ff",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#384280",
+                        "background": "#f8f9fa",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-tertiary-fixed": "#3d0600",
+                        "woktok-orange": "#F37021",
+                        "tertiary": "#2e0300",
+                        "secondary-container": "#adb7fe",
+                        "surface": "#f8f9fa",
+                        "surface-container-high": "#e7e8e9",
+                        "surface-container": "#edeeef",
+                        "on-background": "#191c1d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "text-slate": "#1A1A1A",
+                        "outline": "#757683",
+                        "tertiary-container": "#520c01",
+                        "secondary": "#505a9a",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#2e3f92",
+                        "on-surface": "#191c1d",
+                        "on-primary-container": "#7889e0",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#f8f9fa",
+                        "surface-tint": "#4758ab",
+                        "primary-fixed-dim": "#b9c3ff",
+                        "on-secondary-container": "#3c4685",
+                        "on-tertiary-container": "#d97159",
+                        "on-surface-variant": "#454651",
+                        "tertiary-fixed-dim": "#ffb4a4",
+                        "progress-success": "#28A745",
+                        "on-primary-fixed": "#001158",
+                        "secondary-fixed": "#dee0ff",
+                        "inverse-surface": "#2e3132",
+                        "on-tertiary-fixed-variant": "#7d2c1a",
+                        "primary-container": "#041c72",
+                        "on-secondary-fixed": "#071353",
+                        "veeba-warm-accent": "#FED563",
+                        "surface-dim": "#d9dadb",
+                        "on-error": "#ffffff",
+                        "zyro-teal": "#008080",
+                        "surface-variant": "#e1e3e4",
+                        "secondary-fixed-dim": "#bbc3ff",
+                        "tertiary-fixed": "#ffdad3",
+                        "outline-variant": "#c5c5d3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "base": "4px",
+                        "gutter": "24px",
+                        "container-max": "1280px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter", "sans-serif"],
+                        "headline-md": ["Inter", "sans-serif"],
+                        "display-lg": ["Inter", "sans-serif"],
+                        "headline-lg-mobile": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "label-sm": ["Inter", "sans-serif"],
+                        "label-md": ["Inter", "sans-serif"],
+                        "headline-lg": ["Inter", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["22px", {"lineHeight": "30px", "fontWeight": "600"}],
+                        "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background h-full text-on-background font-body-md text-body-md flex flex-col">
+<!-- Shell B (Top Nav) -->
+<header class="bg-primary fixed top-0 w-full h-16 border-b border-white/10 shadow-sm z-50">
+<div class="flex items-center justify-between px-margin-desktop w-full max-w-container-max mx-auto h-full">
+<div class="flex items-center gap-8 h-full">
+<h1 class="font-headline-md text-headline-md font-bold text-on-primary">VRB Learning Hub</h1>
+<nav class="hidden md:flex items-center gap-6 h-full">
+<a class="text-on-primary/80 font-medium hover:text-veeba-warm-accent transition-colors flex items-center h-full" href="#">Dashboard</a>
+<a class="text-on-primary font-bold border-b-2 border-veeba-warm-accent flex items-center h-full pt-0.5" href="#">Course Library</a>
+<a class="text-on-primary/80 font-medium hover:text-veeba-warm-accent transition-colors flex items-center h-full" href="#">Leaderboard</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-primary hover:text-veeba-warm-accent transition-colors">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="text-on-primary hover:text-veeba-warm-accent transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-veeba-warm-accent text-primary flex items-center justify-center font-label-md text-label-md font-bold ml-2">
+                    JD
+                </div>
+</div>
+</div>
+</header>
+<main class="flex-grow pt-16 flex flex-col w-full max-w-container-max mx-auto px-margin-desktop pb-32">
+<!-- Breadcrumb -->
+<div class="py-6 flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
+<a class="hover:text-primary transition-colors" href="#">Course Library</a>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Veeba Brand Masterclass</a>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-primary font-bold">Module 2</span>
+</div>
+<div class="flex flex-col lg:flex-row gap-gutter">
+<!-- Main Content (60%) -->
+<div class="w-full lg:w-[60%] flex flex-col gap-6">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-3">
+<span class="bg-veeba-red text-white px-3 py-1 rounded font-label-sm text-label-sm uppercase tracking-wider">Veeba</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-primary mt-1">Module 2: Retail Execution</h2>
+</div>
+<!-- Video Player Placeholder -->
+<div class="aspect-video bg-surface-container-highest rounded-xl border border-border-subtle relative overflow-hidden flex flex-col items-center justify-center group cursor-pointer hover:shadow-md transition-shadow">
+<div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors z-10"></div>
+<div class="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-sm z-20 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined fill text-primary text-3xl ml-1">play_arrow</span>
+</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent z-20 flex justify-between items-end">
+<span class="text-white font-label-md text-label-md drop-shadow-sm">Retail Standards &amp; Execution</span>
+<span class="text-white font-label-sm text-label-sm bg-black/50 px-2 py-1 rounded">8:45</span>
+</div>
+</div>
+<!-- Rich Lesson Content -->
+<div class="bg-surface-container-lowest rounded-xl border border-border-subtle p-6 md:p-8 flex flex-col gap-6">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary mb-4">Understanding Retail Execution</h3>
+<p class="text-on-surface-variant mb-4">
+                            Effective retail execution is the bridge between a brand's strategy and the consumer's purchase decision at the shelf. For Veeba products, this means ensuring that every touchpoint in a retail environment reflects our commitment to quality, visibility, and accessibility.
+                        </p>
+<p class="text-on-surface-variant">
+                            Shelf placement is critical. Our primary objective is to secure eye-level positioning in high-traffic aisles. This involves meticulous planning, negotiation with retail partners, and rigorous compliance tracking. Every associate plays a role in maintaining the integrity of our brand presence, reporting out-of-stocks immediately, and ensuring promotional materials are correctly deployed.
+                        </p>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-primary font-bold mb-3 uppercase tracking-wider">Key Performance Indicators</h4>
+<ul class="flex flex-col gap-3">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-veeba-red mt-0.5">check_circle</span>
+<div>
+<span class="font-bold text-on-surface">Planogram compliance:</span>
+<span class="text-on-surface-variant"> Adherence to the agreed-upon shelf layout.</span>
+</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-veeba-red mt-0.5">check_circle</span>
+<div>
+<span class="font-bold text-on-surface">Stock availability:</span>
+<span class="text-on-surface-variant"> Zero out-of-stock incidents during peak shopping hours.</span>
+</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-veeba-red mt-0.5">check_circle</span>
+<div>
+<span class="font-bold text-on-surface">POS placement:</span>
+<span class="text-on-surface-variant"> Point-of-sale materials are visible, intact, and current.</span>
+</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-veeba-red mt-0.5">check_circle</span>
+<div>
+<span class="font-bold text-on-surface">Pricing accuracy:</span>
+<span class="text-on-surface-variant"> Shelf tags accurately reflect current promotions and MSRP.</span>
+</div>
+</li>
+</ul>
+</div>
+<!-- Info Callout -->
+<div class="bg-surface-container-low border-l-4 border-primary rounded p-4 flex items-start gap-4">
+<span class="material-symbols-outlined text-primary mt-0.5">lightbulb</span>
+<div>
+<span class="font-label-md text-label-md text-primary font-bold block mb-1">Pro-tip:</span>
+<p class="text-on-surface-variant text-sm">Consistent shelf placement increases brand recall by 40%. Always check adjacent products to ensure Veeba stands out.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Sticky Sidebar (40%) -->
+<div class="w-full lg:w-[40%]">
+<div class="sticky top-24 flex flex-col gap-6">
+<!-- Module Contents Card -->
+<div class="bg-surface-container-lowest rounded-xl border border-border-subtle overflow-hidden">
+<div class="p-6 border-b border-border-subtle bg-surface-container-low/50">
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Module contents</h3>
+<div class="flex items-center justify-between text-sm mt-4">
+<span class="text-on-surface-variant font-label-md text-label-md">Module progress: 50%</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">Estimated time: 15 min</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full h-2 bg-border-subtle rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-primary w-1/2 rounded-full"></div>
+</div>
+</div>
+<div class="p-2 flex flex-col">
+<div class="flex items-center gap-4 p-4 hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer group">
+<div class="w-8 h-8 rounded-full bg-progress-success/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-progress-success fill text-xl">check_circle</span>
+</div>
+<div class="flex-grow">
+<span class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Lesson</span>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer group">
+<div class="w-8 h-8 rounded-full bg-progress-success/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-progress-success fill text-xl">check_circle</span>
+</div>
+<div class="flex-grow">
+<span class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Downloadable guide</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">download</span>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-lg bg-surface-container-low/30 opacity-70">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-outline text-xl">lock</span>
+</div>
+<div class="flex-grow">
+<span class="font-label-md text-label-md text-on-surface-variant">Assessment</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Sticky Action Bar -->
+<div class="fixed bottom-0 w-full bg-surface-container-lowest border-t border-border-subtle p-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] z-40">
+<div class="max-w-container-max mx-auto px-margin-desktop flex flex-col sm:flex-row items-center justify-between gap-4">
+<span class="text-on-surface-variant font-label-md text-label-md hidden sm:block">Complete this lesson to unlock the assessment.</span>
+<div class="flex w-full sm:w-auto items-center gap-4">
+<button class="flex-1 sm:flex-none px-6 py-2 border border-primary text-primary font-label-md text-label-md rounded hover:bg-primary/5 transition-colors text-center">
+                    Mark lesson complete
+                </button>
+<button class="flex-1 sm:flex-none px-6 py-2 bg-veeba-red/50 text-white font-label-md text-label-md rounded cursor-not-allowed flex items-center justify-center gap-2" disabled="">
+<span class="material-symbols-outlined text-sm">lock</span>
+                    Start assessment
+                </button>
+</div>
+</div>
+</div>
+</body></html>

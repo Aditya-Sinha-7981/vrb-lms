@@ -15,27 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Language strings for theme_vrblms.
+ * Hook callbacks for local_vrblms.
  *
- * @package    theme_vrblms
- * @copyright  2026 VRB Consumer
+ * @package    local_vrblms
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'VRB Learning Platform';
-
-// Front page / index hero.
-$string['herotitle'] = 'VRB Consumer Learning Platform';
-$string['herosubtitle'] = 'Internal training for Veeba, Wok Tok and Zyro teams.';
-$string['secureportal'] = 'Secure internal portal';
-
-// Login page.
-$string['loginusername'] = 'Username / Employee Code';
-$string['loginusernameplaceholder'] = 'e.g. EMP-1001';
-$string['loginsubtitle'] = 'Sign in with your Employee Code to access your training.';
-
-// My courses / brand selection.
-$string['mycoursesheading'] = 'Select your brand module';
-$string['mycoursessubtitle'] = 'Choose a brand to continue your training.';
+$callbacks = [
+    [
+        'hook' => \core\hook\navigation\primary_extend::class,
+        'callback' => \local_vrblms\hook_callbacks::class . '::extend_primary_navigation',
+    ],
+];

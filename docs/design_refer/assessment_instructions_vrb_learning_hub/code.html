@@ -1,0 +1,226 @@
+<!DOCTYPE html><html lang="en" style="width: 1280px; height: 824px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>VRB Learning Hub - Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-grey": "#F3F4F5",
+                        "primary-fixed": "#dee1ff",
+                        "primary-fixed-dim": "#b9c3ff",
+                        "inverse-surface": "#2e3132",
+                        "error": "#BA1A1A",
+                        "on-tertiary-fixed": "#191b25",
+                        "secondary": "#4758ab",
+                        "surface": "#f8f9fa",
+                        "secondary-fixed-dim": "#b9c3ff",
+                        "card-bg": "#FFFFFF",
+                        "surface-container-high": "#e7e8e9",
+                        "primary": "#000000",
+                        "on-secondary-fixed-variant": "#2e3f92",
+                        "on-error-container": "#93000a",
+                        "border-base": "#E9ECEF",
+                        "surface-container-highest": "#e1e3e4",
+                        "surface-variant": "#e1e3e4",
+                        "tertiary-container": "#191b25",
+                        "text-secondary": "#454651",
+                        "surface-tint": "#505b92",
+                        "woktok-orange": "#F37021",
+                        "surface-container": "#edeeef",
+                        "on-primary-fixed": "#09164b",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#95a6ff",
+                        "veeba-warm": "#FED563",
+                        "primary-container": "#09164b",
+                        "on-surface": "#191c1d",
+                        "tertiary-fixed": "#e1e1f0",
+                        "secondary-fixed": "#dee1ff",
+                        "surface-bright": "#f8f9fa",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#45464f",
+                        "zyro-teal": "#008080",
+                        "on-tertiary-container": "#828390",
+                        "on-primary-fixed-variant": "#384379",
+                        "tertiary-fixed-dim": "#c5c5d4",
+                        "inverse-primary": "#b9c3ff",
+                        "error-container": "#ffdad6",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-tertiary-fixed-variant": "#454652",
+                        "on-background": "#191c1d",
+                        "on-primary": "#ffffff",
+                        "outline": "#767680",
+                        "outline-variant": "#c6c5d1",
+                        "tertiary": "#000000",
+                        "on-secondary-fixed": "#001158",
+                        "surface-dim": "#d9dadb",
+                        "surface-container-low": "#f3f4f5",
+                        "on-error": "#ffffff",
+                        "text-primary": "#191C1D",
+                        "on-primary-container": "#7680bb",
+                        "on-tertiary": "#ffffff",
+                        "veeba-red": "#E31E24",
+                        "on-secondary-container": "#26388a",
+                        "background": "#f8f9fa",
+                        "success": "#28A745"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "margin-desktop": "40px",
+                        "margin-mobile": "16px",
+                        "max-width": "1280px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "headline-md": ["22px", { "lineHeight": "30px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface font-body-md text-text-primary min-h-screen flex flex-col">
+<!-- Distraction-free Top Bar -->
+<header class="bg-surface border-b border-border-base h-16 flex items-center px-margin-mobile md:px-margin-desktop sticky top-0 z-50">
+<div class="max-w-max-width mx-auto w-full flex items-center justify-between">
+<div class="flex items-center space-x-4">
+<button aria-label="Back to course" class="text-text-secondary hover:text-primary transition-colors flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-highest">
+<i class="fa-solid fa-xmark"></i>
+</button>
+<div class="flex items-center space-x-2">
+<svg class="h-6 w-auto text-primary" fill="currentColor" viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
+<text font-family="Inter" font-size="24" font-weight="bold" x="0" y="22">VRB LMS</text>
+</svg>
+<span class="text-text-secondary hidden md:inline">/</span>
+<span class="text-text-secondary hidden md:inline truncate font-label-md">Veeba Brand Masterclass Assessment</span>
+</div>
+</div>
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full bg-surface-grey border border-border-base flex items-center justify-center text-text-secondary font-label-sm">
+                    AT
+                </div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow p-margin-mobile md:p-margin-desktop flex items-center justify-center">
+<!-- Assessment Card -->
+<div class="w-full max-w-[640px] bg-card-bg border border-border-base rounded-xl border-t-[4px] border-t-veeba-red relative hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-shadow duration-300">
+<div class="p-6 md:p-8 space-y-6">
+<!-- Header -->
+<div class="space-y-4">
+<div class="flex items-start justify-between">
+<span class="inline-flex items-center px-2 py-1 rounded-full bg-[#fde8e9] text-veeba-red font-label-sm">
+                            Veeba
+                        </span>
+</div>
+<h1 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg-mobile md:font-headline-lg text-primary">
+                        Veeba Brand Masterclass Assessment
+                    </h1>
+<p class="text-body-md font-body-md text-text-secondary">
+                        This assessment covers the core product knowledge and brand standards for the Veeba portfolio. Please ensure you have reviewed all modules before starting.
+                    </p>
+</div>
+<!-- Metadata Grid -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-y border-border-base">
+<div class="flex flex-col space-y-1">
+<span class="text-label-sm font-label-sm text-text-secondary uppercase tracking-wider">Questions</span>
+<span class="text-body-md font-body-md text-primary font-medium">10</span>
+</div>
+<div class="flex flex-col space-y-1">
+<span class="text-label-sm font-label-sm text-text-secondary uppercase tracking-wider">Time Limit</span>
+<span class="text-body-md font-body-md text-primary font-medium">20 min</span>
+</div>
+<div class="flex flex-col space-y-1">
+<span class="text-label-sm font-label-sm text-text-secondary uppercase tracking-wider">Attempts Allowed</span>
+<span class="text-body-md font-body-md text-primary font-medium">3</span>
+</div>
+<div class="flex flex-col space-y-1">
+<span class="text-label-sm font-label-sm text-text-secondary uppercase tracking-wider">Grade to Pass</span>
+<span class="text-body-md font-body-md text-primary font-medium">60%</span>
+</div>
+</div>
+<!-- Info Callout -->
+<div class="bg-primary-fixed-dim/20 rounded-lg p-4 flex items-start space-x-3 border border-primary-fixed/50">
+<i class="fa-solid fa-circle-info text-primary-container mt-0.5"></i>
+<p class="text-body-md font-body-md text-primary-container">
+                        You must pass this to unlock the next module.
+                    </p>
+</div>
+<!-- Attempts Table -->
+<div class="space-y-3">
+<h3 class="text-label-md font-label-md text-primary">Previous Attempts</h3>
+<div class="border border-border-base rounded-xl overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-grey border-b border-border-base text-label-sm font-label-sm text-text-secondary uppercase">
+<tr>
+<th class="py-3 px-4 font-medium">Attempt</th>
+<th class="py-3 px-4 font-medium">Date</th>
+<th class="py-3 px-4 font-medium">Score</th>
+<th class="py-3 px-4 font-medium">Status</th>
+<th class="py-3 px-4 font-medium text-right">Action</th>
+</tr>
+</thead>
+<tbody class="text-body-md font-body-md text-primary">
+<tr>
+<td class="py-3 px-4 border-b border-border-base last:border-0">Attempt 1</td>
+<td class="py-3 px-4 border-b border-border-base last:border-0 text-text-secondary">Oct 24, 2023</td>
+<td class="py-3 px-4 border-b border-border-base last:border-0">45%</td>
+<td class="py-3 px-4 border-b border-border-base last:border-0">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-label-sm font-label-sm">
+                                            Not Passed
+                                        </span>
+</td>
+<td class="py-3 px-4 border-b border-border-base last:border-0 text-right">
+<button class="text-primary-container hover:text-on-primary-fixed-variant text-label-sm font-label-md transition-colors underline underline-offset-2">
+                                            Review
+                                        </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Actions -->
+<div class="pt-6 flex flex-col md:flex-row items-center gap-4 border-t border-border-base">
+<button class="w-full md:w-auto px-6 py-2.5 bg-veeba-red hover:bg-[#c81920] text-white rounded font-label-md text-label-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-veeba-red focus:ring-offset-2">
+                        Start assessment
+                    </button>
+<button class="w-full md:w-auto px-6 py-2.5 bg-transparent border border-[#000B43] text-[#000B43] hover:bg-surface-container-highest rounded font-label-md text-label-md transition-colors focus:outline-none focus:ring-2 focus:ring-[#000B43] focus:ring-offset-2">
+                        Back to module
+                    </button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

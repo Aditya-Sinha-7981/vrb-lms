@@ -19,13 +19,15 @@ $context = context_system::instance();
 $PAGE->set_context($context);
 $PAGE->set_url(new moodle_url('/local/vrblms/leaderboard.php'));
 $PAGE->set_pagelayout('report');
-$PAGE->set_title(get_string('leaderboard', 'local_vrblms'));
-$PAGE->set_heading(get_string('leaderboard', 'local_vrblms'));
+$PAGE->set_title(get_string('pageheading', 'local_vrblms'));
+$PAGE->set_heading(get_string('pageheading', 'local_vrblms'));
 
 $canviewall = has_capability('local/vrblms:viewfullleaderboard', $context);
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('leaderboard', 'local_vrblms'));
+// The page heading ("Regional Leaderboard") is rendered by the report
+// pagelayout from $PAGE->set_heading() above - just add the subtitle here.
+echo html_writer::tag('p', get_string('pagesubtitle', 'local_vrblms'), ['class' => 'vrb-lb-subtitle']);
 
 if ($canviewall) {
     $brands = api::get_brands();
@@ -86,13 +88,13 @@ if ($canviewall) {
         echo html_writer::tag('p', get_string('notenrolled', 'local_vrblms'));
     } else {
         foreach ($ownbrands as $brand) {
-            echo $OUTPUT->heading(get_string('courseheading', 'local_vrblms', format_string($brand->name)), 3);
+            echo leaderboard_view::render_section_heading(format_string($brand->name), $brand->idnumber);
             $rows = api::get_leaderboard($brand->idnumber);
             echo leaderboard_view::render_table($rows, (int) $USER->id);
         }
     }
 
-    echo $OUTPUT->heading(get_string('overallheading', 'local_vrblms'), 3);
+    echo leaderboard_view::render_section_heading(get_string('overallheading', 'local_vrblms'), 'overall');
     $overallrows = api::get_overall_leaderboard();
     echo leaderboard_view::render_table($overallrows, (int) $USER->id);
 }

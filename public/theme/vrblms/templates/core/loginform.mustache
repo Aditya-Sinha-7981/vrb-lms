@@ -1,0 +1,224 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template core/loginform
+
+    theme_vrblms override of theme_moove's core/loginform. Same context
+    variables and the same form field names / hidden inputs / JS wiring as
+    upstream — the only changes are presentational: a VRB wordmark, a
+    subtitle, visible field labels ("Username / Employee Code"), left-hand
+    field icons, and a "secure internal portal" caption. Card styling is
+    in theme/vrblms/style/custom.css (section 5).
+}}
+
+<div class="loginform row {{#hastwocolumns}}hastwocolumns{{/hastwocolumns}}">
+    <div class="{{#hastwocolumns}}col-lg-6 col-md-12 left-column{{/hastwocolumns}}{{^hastwocolumns}}col{{/hastwocolumns}}">
+        {{#logourl}}
+            <div id="loginlogo" class="login-logo">
+                <img id="logoimage" src="{{logourl}}" class="img-fluid" alt="{{sitename}}"/>
+                <h1 class="login-heading visually-hidden">{{#str}} loginto, core, {{sitename}} {{/str}}</h1>
+            </div>
+        {{/logourl}}
+        {{^logourl}}
+            <div class="vrb-login-wordmark">VRB LMS</div>
+            <h1 class="login-heading">{{#str}} loginto, core, {{sitename}} {{/str}}</h1>
+            <p class="vrb-login-subtitle">{{#str}} loginsubtitle, theme_vrblms {{/str}}</p>
+        {{/logourl}}
+        {{#maintenance}}
+            <div class="alert alert-danger login-maintenance">
+                {{{maintenance}}}
+            </div>
+        {{/maintenance}}
+        {{#error}}
+            <a href="#" id="loginerrormessage" class="visually-hidden">{{error}}</a>
+            <div class="alert alert-danger" role="alert">{{error}}</div>
+        {{/error}}
+        {{#info}}
+            <a href="#" id="logininfomessage" class="visually-hidden">{{info}}</a>
+            <div class="alert alert-info" role="alert">{{info}}</div>
+        {{/info}}
+        {{#cansignup}}
+            <a href="{{signupurl}}" class="visually-hidden">{{#str}} tocreatenewaccount {{/str}}</a>
+        {{/cansignup}}
+        {{#showloginform}}
+            <form class="login-form" action="{{loginurl}}" method="post" id="login">
+                <input id="anchor" type="hidden" name="anchor" value="">
+                <script>document.getElementById('anchor').value = location.hash;</script>
+                <input type="hidden" name="logintoken" value="{{logintoken}}">
+                <div class="login-form-username mb-3">
+                    <label for="username" class="vrb-login-label">
+                        {{#str}} loginusername, theme_vrblms {{/str}}
+                    </label>
+                    <div class="vrb-input-wrap">
+                        <i class="fa fa-user" aria-hidden="true"></i>
+                        <input type="text" name="username" id="username" {{!
+                        !}}class="form-control form-control-lg" {{!
+                        !}}value="{{username}}" {{!
+                        !}}placeholder="{{#str}} loginusernameplaceholder, theme_vrblms {{/str}}" {{!
+                        !}}autocomplete="username">
+                    </div>
+                </div>
+                <div class="login-form-password mb-3">
+                    <label for="password" class="vrb-login-label">{{#str}} password {{/str}}</label>
+                    <div class="vrb-input-wrap">
+                        <i class="fa fa-lock" aria-hidden="true"></i>
+                        <input type="password" name="password" id="password" value="" {{!
+                        !}}class="form-control form-control-lg" {{!
+                        !}}placeholder="{{#cleanstr}}password{{/cleanstr}}" {{!
+                        !}}autocomplete="current-password">
+                    </div>
+                </div>
+                {{#recaptcha}}
+                    <div class="login-form-recaptcha mb-3">
+                        {{{recaptcha}}}
+                    </div>
+                {{/recaptcha}}
+                <div class="row align-items-center">
+                    <div class="login-form-submit col">
+                        <button class="btn btn-primary btn-block" type="submit" id="loginbtn">{{#str}}login{{/str}}</button>
+                    </div>
+
+                    {{#cansignup}}
+                        <div class="col">
+                            <div class="login-signup text-center">
+                                <a class="btn btn-success btn-block text-white" href="{{signupurl}}">{{#str}}startsignup{{/str}}</a>
+                            </div>
+                        </div>
+                    {{/cansignup}}
+                </div>
+            </form>
+
+            <div class="login-form-forgotpassword mt-3">
+                <a href="{{forgotpasswordurl}}">{{#str}}forgotaccount{{/str}}</a>
+            </div>
+
+            <p class="vrb-login-secure">
+                <i class="fa fa-lock" aria-hidden="true"></i> {{#str}} secureportal, theme_vrblms {{/str}}
+            </p>
+        {{/showloginform}}
+
+        {{#hasidentityproviders}}
+            <div class="login-divider"></div>
+            <div class="login-identityproviders">
+                <h2 class="login-heading">{{#str}} potentialidps, auth {{/str}}</h2>
+                {{#identityproviders}}
+                    <a class="btn login-identityprovider-btn w-100" href="{{url}}">
+                        {{#iconurl}}
+                            <img src="{{iconurl}}" alt="" width="24" height="24"/>
+                        {{/iconurl}}
+                        {{name}}
+                    </a>
+                {{/identityproviders}}
+            </div>
+        {{/hasidentityproviders}}
+
+        {{^hastwocolumns}}
+            {{#canloginasguest}}
+                <div class="login-divider"></div>
+                <h2 class="login-heading">{{#str}}someallowguest{{/str}}</h2>
+                <form action="{{loginurl}}" method="post" id="guestlogin">
+                    <input type="hidden" name="logintoken" value="{{logintoken}}">
+                    <input type="hidden" name="username" value="guest" />
+                    <input type="hidden" name="password" value="guest" />
+                    <button class="btn btn-secondary" type="submit" id="loginguestbtn">{{#str}}loginguest{{/str}}</button>
+                </form>
+            {{/canloginasguest}}
+            <div class="login-divider"></div>
+            <div class="d-flex">
+                {{#languagemenu}}
+                    <div class="login-languagemenu">
+                        {{>core/action_menu}}
+                    </div>
+                    <div class="divider border-start align-self-center mx-3"></div>
+                {{/languagemenu}}
+                <button type="button" class="btn btn-secondary" {{!
+                }} data-modal="alert"{{!
+                }} data-modal-title-str='["cookiesenabled", "core"]' {{!
+                }} data-modal-content-str='["cookiesenabled_help_html", "core"]'{{!
+                }}>{{#str}}cookiesnotice{{/str}}</button>
+            </div>
+        {{/hastwocolumns}}
+    </div>
+    {{#hastwocolumns}}
+        <div class="col-lg-6 col-md-12 right-column">
+            {{#hasinstructions}}
+                <div class="login-divider"></div>
+                <div class="login-instructions {{#cansignup}}mb-3{{/cansignup}}">
+                    <h2 class="login-heading">{{#str}}firsttime{{/str}}</h2>
+                    {{{instructions}}}
+                </div>
+            {{/hasinstructions}}
+            {{#canloginasguest}}
+                <div class="login-divider"></div>
+                <h2 class="login-heading">{{#str}}someallowguest{{/str}}</h2>
+                <form action="{{loginurl}}" method="post" id="guestlogin">
+                    <input type="hidden" name="logintoken" value="{{logintoken}}">
+                    <input type="hidden" name="username" value="guest" />
+                    <input type="hidden" name="password" value="guest" />
+                    <button class="btn btn-secondary" type="submit" id="loginguestbtn">{{#str}}loginguest{{/str}}</button>
+                </form>
+            {{/canloginasguest}}
+            <div class="login-divider"></div>
+            <div class="d-flex">
+                {{#languagemenu}}
+                    <div class="login-languagemenu">
+                        {{>core/action_menu}}
+                    </div>
+                    <div class="divider border-start align-self-center mx-3"></div>
+                {{/languagemenu}}
+                <button type="button" class="btn btn-secondary" {{!
+                }} data-modal="alert"{{!
+                }} data-modal-title-str='["cookiesenabled", "core"]' {{!
+                }} data-modal-content-str='["cookiesenabled_help_html", "core"]'{{!
+                }}>{{#str}}cookiesnotice{{/str}}</button>
+            </div>
+        </div>
+    {{/hastwocolumns}}
+</div>
+
+{{#js}}
+    {{^error}}
+        {{#autofocusform}}
+            require(['core_form/events'], function(FormEvent) {
+                function autoFocus() {
+                    const userNameField = document.getElementById('username');
+                    if (userNameField.value.length == 0) {
+                        userNameField.focus();
+                    } else {
+                        document.getElementById('password').focus();
+                    }
+                }
+                autoFocus();
+                window.addEventListener(FormEvent.eventTypes.fieldStructureChanged, autoFocus);
+            });
+        {{/autofocusform}}
+    {{/error}}
+    {{#error}}
+        document.getElementById('loginerrormessage').focus();
+    {{/error}}
+    {{#togglepassword}}
+        require(['core/togglesensitive'], function(ToggleSensitive) {
+            ToggleSensitive.init("password", {{smallscreensonly}});
+        });
+    {{/togglepassword}}
+    require(['core_form/submit'], function(Submit) {
+        Submit.init("loginbtn");
+        {{#canloginasguest}}
+            Submit.init("loginguestbtn");
+        {{/canloginasguest}}
+    });
+{{/js}}

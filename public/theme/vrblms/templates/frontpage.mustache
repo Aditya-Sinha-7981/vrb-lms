@@ -17,18 +17,22 @@
 {{!
     @template theme_vrblms/frontpage
 
-    VRB LMS front page. Deliberately minimal — one big heading with a
-    fade-up animation, reusing theme_moove's navbar/footer partials for
-    everything else (login link, drawers, session menus). A real design
-    pass replaces this later; theme_moove/frontpage.mustache (the
-    original demo template) is untouched and still available as a
-    reference for that.
+    VRB LMS front page. A branded navy splash whose only job is to route
+    the visitor to sign-in (or to "My courses" if already logged in).
+    Reuses theme_moove's navbar/footer partials for the rest of the
+    chrome; theme_moove/frontpage.mustache (the original demo template)
+    is untouched.
 
     Context variables required for this template:
     * sitename - The name of the site
     * output - The core renderer for the page
     * bodyattributes - attributes for the body tag as a string of html attributes
     * herotitle - the big heading text
+    * herosubtitle - the supporting line under the heading
+    * secureportal - the "secure internal portal" caption
+    * isloggedin - true if the visitor already has a session
+    * loginurl - URL of the login page
+    * mycoursesurl - URL of the "My courses" page
 
     Example context (json):
     {
@@ -40,7 +44,12 @@
             "main_content": "<h1>Headings make html validators happier</h1>"
          },
         "bodyattributes": "",
-        "herotitle": "VRB Consumer Learning Platform"
+        "herotitle": "VRB Consumer Learning Platform",
+        "herosubtitle": "Internal training for Veeba, Wok Tok and Zyro teams.",
+        "secureportal": "Secure internal portal",
+        "isloggedin": false,
+        "loginurl": "https://example.com/login/index.php",
+        "mycoursesurl": "https://example.com/my/courses.php"
     }
 }}
 {{> theme_boost/head }}
@@ -55,12 +64,27 @@
 
     <div id="page" data-region="mainpage" data-usertour="scroller" class="drawers drag-container bg-white">
         <section class="vrb-hero">
-            <h1>{{herotitle}}</h1>
+            <div class="vrb-hero__inner">
+                <div class="vrb-hero__wordmark">VRB<span>LMS</span></div>
+                <h1 class="vrb-hero__title">{{herotitle}}</h1>
+                <p class="vrb-hero__subtitle">{{herosubtitle}}</p>
+                <div class="vrb-hero__actions">
+                    {{#isloggedin}}
+                        <a class="btn btn-lg vrb-hero__cta" href="{{{mycoursesurl}}}">{{#str}}mycourses{{/str}}</a>
+                    {{/isloggedin}}
+                    {{^isloggedin}}
+                        <a class="btn btn-lg vrb-hero__cta" href="{{{loginurl}}}">{{#str}}login{{/str}}</a>
+                    {{/isloggedin}}
+                </div>
+                <p class="vrb-hero__secure">
+                    <i class="fa fa-lock" aria-hidden="true"></i> {{secureportal}}
+                </p>
+            </div>
         </section>
 
         <div id="topofscroll">
             <div id="page-content" class="d-print-block main-inner">
-                <div id="region-main-box">
+                <div id="region-main-box" class="vrb-frontpage-hidden">
                     <section id="region-main" aria-label="{{#str}}content{{/str}}">
                         {{{ output.course_content_header }}}
                         {{{ output.main_content }}}
@@ -83,15 +107,6 @@
         Drawer.init();
         M.util.js_complete('theme_boost/loader');
     });
-    require(['jquery'], function($) {
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.body.setAttribute('data-bs-theme', 'dark');
-        }
-
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            const newColorScheme = event.matches ? "dark" : "light";
-
-            document.body.setAttribute('data-bs-theme', newColorScheme);
-        });
-    });
+    {{! The VRB design is light-only — do not follow the OS dark-mode
+        preference (the sitewide CSS also neutralises data-bs-theme=dark). }}
 {{/js}}

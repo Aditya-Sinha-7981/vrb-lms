@@ -116,7 +116,12 @@ $templatecontext = [
     'overflow' => $overflow,
     'headercontent' => $headercontent,
     'addblockbutton' => $addblockbutton,
-    'herotitle' => 'VRB Consumer Learning Platform',
+    'herotitle' => get_string('herotitle', 'theme_vrblms'),
+    'herosubtitle' => get_string('herosubtitle', 'theme_vrblms'),
+    'secureportal' => get_string('secureportal', 'theme_vrblms'),
+    'isloggedin' => isloggedin() && !isguestuser(),
+    'loginurl' => (new moodle_url('/login/index.php'))->out(false),
+    'mycoursesurl' => (new moodle_url('/my/courses.php'))->out(false),
 ];
 
 $themesettings = new \theme_moove\util\settings();

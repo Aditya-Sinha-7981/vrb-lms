@@ -1610,3 +1610,415 @@ this file and not need the full prior conversation re-explained.
     instances, there aren't any.
   - `report_vrblms` (Phase 5) and the certificate-qualification trigger
     remain out of scope, not started.
+
+## [2026-08-29] — Employee-UI design-match: Phase 0 (token layer) + Phase 1 (index page)
+**Agent:** Claude Code
+**What:** First two phases of the employee-UI design-match build (plan:
+  `docs/temp docs/employee-ui-build-plan.md`, target: `docs/design_refer/`).
+  A design-match audit earlier the same day found the live build was
+  essentially stock Moove/Boost (no Inter, Boost-blue primary, shadowed
+  cards, conecti.me footer credit visible). All work is in `theme_vrblms`
+  (child of Moove) — `style/custom.css` + the theme's own front-page
+  layout/template. No core edits, no `theme_moove` edits, no `$THEME->scss`.
+  - **Phase 0 (foundation, `style/custom.css` rewritten & reorganised):**
+    added an `@import` for Inter (Google Fonts) + a `:root` design-token
+    block (navy `#000B43`/`#041C72`, surface `#F8F9FA`, border `#E9ECEF`,
+    text ramp, brand accents Veeba/Wok Tok/Zyro/warm, success/error,
+    radii card 8px / control 4px / pill 12px). Global rules: Inter on
+    body/headings/controls, body 16px, flat elevation
+    (`.card,.block{box-shadow:none!important;border:1px solid var(--vrb-border);
+    border-radius:8px}`), navy `.btn-primary`/`.btn-outline-primary` +
+    focus ring, 4px control radius, navy content links with an explicit
+    exclusion list for chrome (navbar/drawer/dropdown/secondary-nav/
+    buttons) so nothing renders navy-on-navy, navy top-nav wordmark, navy
+    course `.secondary-navigation` bar (both `.secondary-navigation` and
+    its inner `.navigation`, so the side gutters recolour too), and hid
+    the `#page-footer .copyright`/`.madeby` conecti.me credit strip. All
+    the pre-existing targeted fixes (login bg, nav-transparency,
+    `.qtext`/`.formulation`/`.info` quiz fixes, `.moove-info-container`
+    flex, admin tree spacing, leaderboard table/own-row/filters) were
+    kept, re-slotted under numbered section banners.
+  - **Phase 1 (index / logged-out landing):** reworked the theme's own
+    `layout/frontpage.php` + `templates/frontpage.mustache` (theme_moove's
+    frontpage assets still untouched). New hero content: "VRB LMS"
+    wordmark (LMS in warm yellow), `herotitle`/`herosubtitle` from new
+    theme lang strings, a single CTA that is "Log in" for anonymous
+    visitors and "My courses" for logged-in ones (`isloggedin`/`loginurl`/
+    `mycoursesurl` passed from `frontpage.php`), and a "Secure internal
+    portal" caption. The inherited `#region-main` (site course search) is
+    kept in the DOM — `core_renderer::header()` still fatals without the
+    `main_content` placeholder in the *rendered* output, LOG.md 2026-08-20
+    — but wrapped in `.vrb-frontpage-hidden { display:none !important }`.
+    Front-page navbar forced to solid white + navy text in both colour
+    schemes (the hero is always dark navy; matches the "dashboard" design
+    screen's white top bar).
+**Files touched:** `public/theme/vrblms/style/custom.css` (rewritten),
+  `public/theme/vrblms/layout/frontpage.php` (hero context vars),
+  `public/theme/vrblms/templates/frontpage.mustache` (hero markup +
+  `.vrb-frontpage-hidden` wrapper), `public/theme/vrblms/lang/en/theme_vrblms.php`
+  (`herotitle`, `herosubtitle`, `secureportal`),
+  `public/theme/vrblms/version.php` (`2026082000` → `2026082900`).
+  `docs/temp docs/employee-ui-build-plan.md` (new, the full build plan).
+**Verification done:** `php -l` on all changed PHP; `admin/cli/upgrade.php
+  --non-interactive` (`theme_vrblms ++ Success ++`); `purge_caches.php`
+  after each change. Live browser (Chrome ext, real sessions):
+  - `getComputedStyle` on `/my/courses.php`: `body` font-family starts
+    `Inter`, size 16px; `.btn-primary` background `rgb(0, 11, 67)` radius
+    4px no shadow; `.block` white, 8px radius, no shadow, 1px
+    `rgb(233,236,239)` border; navbar `.navbar-brand` `rgb(0,11,67)`.
+  - conecti.me orange strip gone from the footer on every logged-in page
+    checked (`/my/courses.php`, `/course/view.php`, front page).
+  - Front page (`/?redirect=0`): renders the navy hero, wordmark,
+    heading/subtitle, CTA. Confirmed the CTA text is visible
+    (`rgb(0,11,67)` navy on white) after fixing an `a.btn { color: inherit }`
+    rule that was making it white-on-white — now
+    `a.btn:not(.vrb-hero__cta)`. Logged-out shows "Log in" CTA + footer
+    "You are not logged in."; logged-in (kavitayadav) shows "My courses"
+    CTA.
+  - `/login/index.php`: heading now navy, "Log in" button now navy
+    `#000B43` (the old login-specific `#2a4494` override was removed;
+    Phase 0's navy primary flows through). Card is still Moove's
+    full-width one — Phase 2 narrows/accents it.
+  - `/course/view.php?id=2` as `rksharma`: secondary nav bar fully navy
+    edge-to-edge with white links, section cards flat/8px, "Done"/"To do"
+    pills intact, Module 2 unlock state unaffected.
+**Gotchas for future agents:**
+  - The test Chrome profile is in **dark mode**, so pages get
+    `data-bs-theme="dark"` on `<body>` (set by the frontpage template's
+    own inline JS and Moove elsewhere). The sitewide
+    `[data-bs-theme="dark"] nav.navbar.fixed-top` rule turned the
+    front-page navbar `#1a1a2e`; the fix pins the front-page navbar
+    (`body#page-site-index`) to solid white in *both* schemes. Watch for
+    other dark-mode-only rules when checking screenshots.
+  - `a.btn { color: inherit }` (added to stop navy link colour bleeding
+    onto non-primary buttons) is specific enough (0,0,1,1) to beat a
+    single-class button colour rule — it clobbered `.vrb-hero__cta`. Now
+    scoped `a.btn:not(.vrb-hero__cta)`, and the CTA rule is
+    `.vrb-hero .vrb-hero__cta` for headroom. Any future themed button
+    that is an `<a>` needs the same treatment or an explicit `color`.
+  - `body,#page{background:var(--vrb-surface)}` (#F8F9FA) does **not** win
+    against Moove's own body/`#page` background (`#f2f3f7` still computed)
+    — a barely-perceptible difference, left as-is; raise specificity
+    (`#page.drawers`, `body.pagelayout-*`) if it ever matters.
+  - Chrome autofill kept repopulating the login username field mid-type
+    during verification (`triple_click`+`ctrl+a`+`Delete` still left
+    fragments). `form_input` with the element ref set it cleanly — prefer
+    that over simulated typing for login fields.
+  - Phases 2 (login), 3 (my-courses brand grid), 4 (leaderboard) not
+    started. Phase 5 (course-format card grid, deep quiz restyle) is
+    explicitly deferred — see the plan file.
+
+## [2026-08-29] — Employee-UI Phase 0 follow-up: force light colour scheme + global text colours
+**Agent:** Claude Code
+**What:** Fixed unreadable dark-on-dark chrome reported by the user (the
+  front-page user menu: navy text on a dark-navy dropdown). Root cause:
+  the test browser's OS is in dark mode and the front-page template's own
+  JS was setting `data-bs-theme="dark"` on `<body>`, so Bootstrap's dark
+  dropdown/navbar tokens kicked in — and the Phase 0 front-page navbar
+  rule `nav.navbar.fixed-top a { color: var(--vrb-navy) !important }` was
+  broad enough to also recolour the user-menu dropdown links nested inside
+  the navbar, giving navy-on-dark.
+  Fixes, all in `theme/vrblms`:
+  - **`style/custom.css`:** new "Force the light colour scheme everywhere"
+    block — `:root, [data-bs-theme="dark"], body[data-bs-theme="dark"]`
+    redefines the Bootstrap dark tokens (`--bs-body-bg/-color`,
+    `--bs-secondary/tertiary-*`, `--bs-border-color`, `--bs-link-color*`,
+    and the full `--bs-dropdown-*` set) back to the VRB light palette +
+    `color-scheme: light`. The VRB design is light-only ("Neutral-First",
+    ~90% white) so there is no dark variant to support.
+  - Global text-colour rules: `h1–h6/.h1–.h6 → --vrb-text`;
+    `p,li,dd,dt,td,th,label,.form-label,figcaption → inherit`;
+    `.text-muted/.text-secondary/small/.small/.dimmed_text → --vrb-text-2
+    !important`.
+  - Explicit `.dropdown-menu` / `.dropdown-item` / hover / `.dropdown-header`
+    / `.dropdown-divider` rules (white bg, `--vrb-text`, navy hover) so
+    every menu is readable regardless of scheme. Removed `.dropdown-item`
+    from the `color: inherit` chrome list (it was inheriting a dark
+    parent's colour).
+  - Front-page navbar override rescoped from `nav.navbar.fixed-top a` to
+    the navbar's own link classes only (`.navbar-brand`,
+    `.primary-navigation .nav-link`, `.moremenu .nav-link`,
+    `> .navbar-nav .nav-link`) so it no longer touches the nested
+    user-menu dropdown.
+  - Removed the now-obsolete `[data-bs-theme="dark"]` rules added in the
+    first Phase 0 pass (`nav.navbar.fixed-top` dark bg,
+    `.vrb-leaderboard-own-row` dark bg).
+  - **`templates/frontpage.mustache`:** deleted the `require(['jquery'])`
+    block that set `data-bs-theme` from `prefers-color-scheme`. The
+    front page (and, via the CSS above, the rest of the site) now renders
+    light regardless of OS preference.
+**Files touched:** `public/theme/vrblms/style/custom.css`,
+  `public/theme/vrblms/templates/frontpage.mustache`. No version bump
+  (CSS/template only; caches purged).
+**Verification done:** `purge_caches.php`. Live browser (session logged in
+  as `rksharma`, OS in dark mode):
+  - Front page (`/?redirect=0`): opened the user menu — now white
+    background, `rgb(25,28,29)` text on every item (Accessibility /
+    Profile / Grades / Calendar / Private files / Reports / Preferences /
+    Log out). `getComputedStyle('.dropdown-menu.show')` → bg
+    `rgb(255,255,255)`, item colour `rgb(25,28,29)`. `document.body`
+    `data-bs-theme` is now `light` (was `dark`).
+  - `/my/courses.php`: `data-bs-theme=light`, `h2` colour `rgb(25,28,29)`,
+    no dark surfaces.
+**Gotchas for future agents:**
+  - Moove ships a light/dark toggle in the navbar (the little switch near
+    the user avatar). With the force-light CSS in place, toggling it to
+    dark now has almost no visible effect — acceptable and on-design, but
+    if a user asks "why doesn't dark mode work", this is why. Hiding the
+    toggle was considered and skipped (low harm); revisit if it confuses
+    people.
+  - `body,#page{background:var(--vrb-surface)}` (#F8F9FA) still loses to
+    Moove's own `#f2f3f7` body background — imperceptible, left as-is.
+  - Any future themed control that is an `<a>` inside `.navbar` needs an
+    explicit `color` (the `nav.navbar a { color: inherit }` rule + the
+    dark-token neutralisation cover the common cases, but a hard-coded
+    light colour on a custom navbar link will still need care).
+
+## [2026-08-29] — Employee-UI Phase 2: login page
+**Agent:** Claude Code
+**What:** Restyled `/login/index.php` to the VRB design (branded card,
+  navy accent, labelled fields with icons). All in `theme_vrblms`.
+  - **New override `templates/core/loginform.mustache`** (based on
+    `theme_moove/templates/core/loginform.mustache`, same field names /
+    hidden inputs / `{{#js}}` wiring). Changes: a `.vrb-login-wordmark`
+    ("VRB LMS") above the heading; a `.vrb-login-subtitle`; the username
+    `<label>` is now visible and reads **"Username / Employee Code"**
+    (new string `theme_vrblms/loginusername`), placeholder "e.g. EMP-1001"
+    (`loginusernameplaceholder`); the password `<label>` is visible;
+    both inputs wrapped in `.vrb-input-wrap` with a left FontAwesome icon
+    (`fa-user` / `fa-lock`); a `.vrb-login-secure` "Secure internal
+    portal" caption (reuses `theme_vrblms/secureportal`) below the form.
+  - **`style/custom.css` section 5 rewritten:** card `max-width:460px`,
+    centred, 1px `--vrb-border`, 8px radius, `0 4px 12px rgba(0,0,0,.05)`
+    shadow, `padding:0` + `overflow:hidden` with a `::before` 4px navy
+    top accent bar flush to the edge; `.loginform` gets the 2rem padding;
+    heading navy 1.375rem/600 centred + muted subtitle; `.vrb-login-label`
+    bold 0.875rem; `.vrb-input-wrap` icon absolutely positioned, input
+    `padding-left:2.4rem` + `width:100%`; `#loginbtn` full width; forgot-
+    password link right-aligned small; guest/cookies/lang row
+    de-emphasised below a `--vrb-border` divider.
+  - New lang strings in `lang/en/theme_vrblms.php`: `loginusername`,
+    `loginusernameplaceholder`, `loginsubtitle`.
+  - `version.php` → `2026082901`.
+**Files touched:** `public/theme/vrblms/templates/core/loginform.mustache`
+  (new), `public/theme/vrblms/style/custom.css` (section 5),
+  `public/theme/vrblms/lang/en/theme_vrblms.php`,
+  `public/theme/vrblms/version.php`.
+**Verification done:** `php -l` lang file; `admin/cli/upgrade.php
+  --non-interactive` (`++ Success ++`); `purge_caches.php` per change.
+  Live browser (logged out): card renders at 460px, centred, navy accent
+  bar, wordmark, heading, subtitle, "Username / Employee Code" label +
+  person icon, password + lock icon, full-width navy "Log in", right-
+  aligned "Lost password?", "🔒 Secure internal portal". `getComputedStyle`
+  widths: `.login-container` 460, `.loginform` 458, inner col 394,
+  `#loginbtn` 394. **Login submission tested end-to-end** — `rksharma` /
+  `NewPass!2026` authenticated and landed on `/my/courses.php` ("Hi,
+  Rajesh!"), so the form wiring is intact.
+**Gotchas for future agents:**
+  - **`.login-container` is a flex container in Moove's SCSS**, so the
+    form (`{{{ output.main_content }}}` = `.loginform.row`) rendered as a
+    flex *item* and collapsed to its min-content width (~183px) —
+    everything wrapped character-by-character. Fix: force
+    `.login-container { display:block }` and `.loginform { display:block;
+    width:100% }` in `custom.css`. Keep `max-width` (not `width`) on the
+    container — Moove sets the container `width` at higher specificity, so
+    a `width:460px` there is ignored while `max-width:460px` wins.
+  - Moove's loginform splits into two `col-lg-6` columns
+    (`hastwocolumns`) when guest access is on; the override + CSS force a
+    single stacked column (`.left-column/.right-column/[class*="col"]` →
+    `flex:0 0 100%`).
+  - The password show/hide toggle (`core/togglesensitive`, wired by the
+    `{{#togglepassword}}` block kept from Moove) did not show a visible
+    eye button at desktop width — likely `smallscreensonly` is true or
+    `togglepassword` is unset in the login renderable. Not chased; a
+    custom toggle would risk clashing with `core/togglesensitive`.
+  - Heading text is still Moodle's `loginto` string ("Log in to VRB
+    Learning Platform"), not the design's "Learning Hub" — deliberate,
+    it's clearer; revisit if the client wants the exact wording.
+  - Copyright / build-version footer line from the design mock was not
+    added (Moove's login layout renders its own `loginfooter` partial).
+
+## [2026-08-30] — Employee-UI Phase 3: My courses → brand selection
+**Agent:** Claude Code
+**What:** Restyled `/my/courses.php` (the post-login landing, and the
+  `dashboard_vrb_learning_hub` design screen) into a "brand selection"
+  chooser, by styling the stock `block_myoverview` cards + injecting a
+  heading. No custom page/renderer — the user preferred styling the
+  existing page. All in `theme_vrblms`.
+  - **New override `templates/block_myoverview/main.mustache`** — a
+    verbatim copy of core's `block_myoverview/main` with one addition: a
+    `.vrb-mycourses-intro` block (`<h2>` "Select your brand module" +
+    subtitle, strings `theme_vrblms/mycoursesheading` /
+    `mycoursessubtitle`) prepended inside `#block-myoverview-{{uniqid}}`.
+    The search/grouping/sort/display selectors and the `courses-view`
+    partial + its `require([...])` init are copied unchanged.
+  - **`style/custom.css` section 6 rewritten** (the old section used a
+    `#page-my-courses` id selector that never matched — the body id is
+    `page-my-index`; correct hook is the `.page-mycourses` body class):
+    hides `.page-header-headings` ("My courses" H1), the block's
+    `.card-title` ("Course overview", `h3#instance-N-header.card-title`),
+    and the `[data-region="filter"]` search/sort row; centres the
+    injected heading; `.course-card` → flat 1px border + 8px radius +
+    4px navy top accent + hover lift; `.card-img-top` → solid brand
+    colour block (pattern image removed) 84px tall; `.coursename` navy
+    600; `.progress` light track + brand-coloured `.progress-bar`;
+    `.card-footer.menu` (kebab) hidden. Per-brand accent + banner +
+    progress colours keyed to `[data-course-id="2|3|4"]`
+    (Veeba/Wok Tok/Zyro) — documented as environment-specific.
+  - New strings `mycoursesheading`, `mycoursessubtitle` in
+    `lang/en/theme_vrblms.php`. `version.php` → `2026082902`.
+**Files touched:** `public/theme/vrblms/templates/block_myoverview/main.mustache`
+  (new), `public/theme/vrblms/style/custom.css` (section 6),
+  `public/theme/vrblms/lang/en/theme_vrblms.php`,
+  `public/theme/vrblms/version.php`.
+**Verification done:** `php -l` lang; `admin/cli/upgrade.php
+  --non-interactive` (`++ Success ++`); `purge_caches.php` per change.
+  Live browser as `kavitayadav` (3 brands): after scrolling the block
+  into view (see gotcha), the 3 tiles render with Veeba-red / Wok Tok-
+  orange / Zyro-teal banners + matching top accent bars, centred navy
+  "Select your brand module" heading + subtitle, no "My courses" / "Course
+  overview" titles, no search bar, no kebabs. Card links confirmed
+  (`data-course-id` 2/3/4 → `/course/view.php?id=2|3|4`); clicking the
+  Veeba tile navigated to "Veeba Onboarding" with Module 2 still correctly
+  locked. Phase 0 chrome (navy secondary nav, flat sections) unaffected.
+**Gotchas for future agents:**
+  - **The earlier "block_myoverview is broken / infinite spinner" scare
+    was a browser-automation artifact, NOT a real bug.** The
+    Claude-in-Chrome automation tab runs with
+    `document.visibilityState === "hidden"`, and `block_myoverview` (via
+    `core/paged_content` + IntersectionObserver) defers rendering the
+    card page until it is visible/scrolled into view. The cards render
+    fine for real users (confirmed by a user screenshot). **To verify
+    anything on `/my/courses.php` via automation, navigate then
+    `scroll` the block into view** — the scroll fires the observer and
+    the cards appear. Do not conclude the block is broken from a
+    non-scrolled automation screenshot, and do not "fix" it. A full
+    `theme_vrblms` revert to git HEAD + `docker restart vrb-moodle` were
+    both tried during the scare and (correctly) changed nothing.
+  - **Mustache `{{! ... }}` comments do NOT nest and end at the first
+    `}}`** — an early draft of `main.mustache` had "`{{#js}}`" and a
+    "`{}`" inside the doc comment, which closed the comment early and
+    dumped "`init — is unchanged from core. Example context (json): {} }}`"
+    onto the page. Keep `{{`, `}}`, `#js` etc. out of comment text.
+  - "Course overview" on this page is `h3#instance-5-header.card-title`
+    rendered by the block *wrapper* (outside `.block-myoverview`), so the
+    hide rule targets `.page-mycourses .block_myoverview .card-title`
+    (underscore = the outer block section class).
+  - Brand banners are plain colour blocks — real brand logos/wordmarks
+    are still pending from the client; drop them into
+    `theme/vrblms/pix/` and add `background-image` rules per
+    `[data-course-id]` when available. Course summary/description text
+    (shown in the design mock) is not rendered by Moodle's course card
+    and was not added.
+
+## [2026-08-30] — Employee-UI Phase 4: leaderboard visual pass
+**Agent:** Claude Code
+**What:** Restyled `/local/vrblms/leaderboard.php` to the VRB design
+  (docs/design_refer/leaderboard_vrb_learning_hub/). All in our own
+  plugin + theme — no Moove/Boost/core template touched.
+  - **`classes/output/leaderboard_view.php`:** `render_table()` rewritten
+    to emit hand-built `<table class="vrb-lb-table">` markup (via
+    `html_writer`, still fully escaped) instead of `html_table` —
+    `#F3F4F5` header row, a `.vrb-lb-rank` circular badge per row
+    (gold/silver/bronze `.vrb-lb-rank--1|2|3` for the top three), a
+    `.vrb-lb-avatar` initials circle + name, right-aligned tabular Score
+    (bold) / Modules (x/y) / Time. New `initials()` helper (first+last
+    initial via `\core_text`). `format_seconds()` and the empty-location
+    value now return an em-dash. New `render_section_heading($name, $key)`
+    → `<h3 class="vrb-lb-section vrb-lb-section--{slug}">` where slug is
+    derived from a `brand_*` idnumber or the literal `overall`.
+    `render_filter_form()` now wraps the `<form class="vrb-lb-filters">`
+    in a `.vrb-lb-filters-card`; `render_select()` div class →
+    `vrb-lb-field`, label class dropped (CSS targets `.vrb-lb-field label`).
+  - **`leaderboard.php`:** `set_title`/`set_heading` → new
+    `local_vrblms/pageheading` ("Regional Leaderboard"); the in-content
+    `$OUTPUT->heading()` call was removed (the `report` pagelayout
+    already renders the page H1 from `set_heading` — keeping both showed
+    the title twice). Subtitle `<p class="vrb-lb-subtitle">` added.
+    Per-brand + "Overall" section titles now use
+    `leaderboard_view::render_section_heading()` (passing `$brand->idnumber`
+    / `'overall'`) instead of `$OUTPUT->heading(..., 3)`.
+  - **`lang/en/local_vrblms.php`:** `pageheading`, `pagesubtitle` added
+    (`leaderboard` = "Leaderboard" kept for the nav link in `lib.php`).
+  - **`theme_vrblms/style/custom.css` section 10 rewritten** to the
+    `.vrb-lb-*` system: subtitle, brand-accented `.vrb-lb-section`
+    (`--veeba`/`--woktok`/`--zyro`/`--overall`), `.vrb-lb-filters-card`,
+    `.vrb-lb-table-card` (white, 1px border, 8px radius, `overflow:hidden`)
+    > `.vrb-lb-scroll` (`overflow-x:auto`) > `.vrb-lb-table`, the rank
+    badge, the avatar. The own-row highlight (still class
+    `vrb-leaderboard-own-row`, emitted by `render_table`) changed from
+    `#fff3cd` to `rgba(0,11,67,.05)` + an `inset 4px 0 0` navy accent bar
+    on the first cell.
+  - `local_vrblms/version.php` → `2026083000`.
+**Files touched:** `public/local/vrblms/classes/output/leaderboard_view.php`,
+  `public/local/vrblms/leaderboard.php`,
+  `public/local/vrblms/lang/en/local_vrblms.php`,
+  `public/local/vrblms/version.php`,
+  `public/theme/vrblms/style/custom.css` (section 10).
+**Verification done:** `php -l` on all changed PHP; `admin/cli/upgrade.php
+  --non-interactive` (`local_vrblms ++ Success ++`); `purge_caches.php`
+  per change. Live browser as **`kavitayadav`** (multi-brand: Veeba +
+  Wok Tok + Zyro): the employee view renders one brand-accented section
+  per brand (Veeba red / Wok Tok orange / Zyro teal — confirmed via
+  `getComputedStyle().borderLeftColor` = `rgb(227,30,36)` /
+  `rgb(243,112,33)` / `rgb(0,128,128)`) plus an "Overall (all brands)"
+  section (navy `rgb(0,11,67)`); each table has the grey header row, gold
+  #1 / silver #2 / bronze #3 rank badges, initials avatars, right-aligned
+  Score/Modules/Time; **Kavita's own row is highlighted (navy tint + navy
+  left accent bar) in all four tables** — the concrete multi-brand
+  "each course + overall" check. Single page H1 (no duplicate).
+**Gotchas for future agents:**
+  - The **admin/manager filter-form view** (capability
+    `local/vrblms:viewfullleaderboard`, `manager` archetype) is
+    code-complete but was **not visually verified** this pass — no admin
+    credentials available in-session and `kavitayadav` doesn't hold the
+    cap. The form markup + `.vrb-lb-filters-card` styling should be
+    checked on the next admin login. The GET-param filtering logic itself
+    is unchanged from the Phase 3 (2026-08-21) build.
+  - `report` pagelayout renders `$PAGE->set_heading()` as the page H1 —
+    do not also `echo $OUTPUT->heading()` the same string in the body.
+  - Row objects from `\local_vrblms\api` expose: `rank, userid, fullname,
+    idnumber, state, city, region, score_percent, quizzes_completed,
+    quizzes_total, total_time_seconds` — `render_table()` consumes these
+    directly.
+
+## [2026-08-30] — "Leaderboard" added to the primary (header) navigation
+**Agent:** Claude Code
+**What:** Added a "Leaderboard" item to the site primary navigation bar
+  (the `Home | Dashboard | My courses` row in the header), linking to
+  `/local/vrblms/leaderboard.php`, via the
+  `core\hook\navigation\primary_extend` hook.
+  - New `public/local/vrblms/db/hooks.php` registering
+    `\local_vrblms\hook_callbacks::extend_primary_navigation` for
+    `\core\hook\navigation\primary_extend`.
+  - New `public/local/vrblms/classes/hook_callbacks.php` — the callback
+    calls `$hook->get_primaryview()->add(get_string('leaderboard',
+    'local_vrblms'), new moodle_url('/local/vrblms/leaderboard.php'),
+    \navigation_node::TYPE_ROOTNODE, null, 'vrblmsleaderboard')`, guarded
+    by `isloggedin() && !isguestuser()`. `TYPE_ROOTNODE` matches what
+    `\core\navigation\views\primary::initialise()` uses for the
+    "My courses" node, so it renders inline with the others.
+  - `local_vrblms/lib.php`'s existing `local_vrblms_extend_navigation()`
+    (which adds the same link to the navigation *drawer* tree) was left
+    as-is — core items like "My courses" appear in both places too.
+  - `local_vrblms/version.php` → `2026083001` (needed so Moodle re-scans
+    `db/hooks.php`).
+**Files touched:** `public/local/vrblms/db/hooks.php` (new),
+  `public/local/vrblms/classes/hook_callbacks.php` (new),
+  `public/local/vrblms/version.php`.
+**Verification done:** `php -l` both new files; `admin/cli/upgrade.php
+  --non-interactive` (`local_vrblms ++ Success ++`); `purge_caches.php`.
+  Live browser as `kavitayadav`: header now reads
+  `Home | Dashboard | My courses | Leaderboard`; the item's href is
+  `/local/vrblms/leaderboard.php`; clicking it loads the Regional
+  Leaderboard page and the nav item shows active/bold there.
+**Gotchas for future agents:**
+  - `\core\hook\navigation\primary_extend` is dispatched at the end of
+    `\core\navigation\views\primary::initialise()`
+    (`lib/classes/navigation/views/primary.php:90`), right after Home /
+    Dashboard / My courses are added — so hook-added nodes land after
+    "My courses". `$hook->get_primaryview()->add()` is
+    `navigation_node::add()` (public), same signature used by
+    `lib.php`'s drawer callback.
+  - Adding/altering `db/hooks.php` requires a plugin version bump or the
+    new callback is not picked up.

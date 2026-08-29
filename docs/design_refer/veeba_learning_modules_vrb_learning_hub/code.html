@@ -1,0 +1,326 @@
+<!DOCTYPE html><html class="light" lang="en" style="width: 1280px; height: 1179px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Veeba Brand Course - VRB LMS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#adb7fe",
+                        "outline": "#757683",
+                        "veeba-warm-accent": "#FED563",
+                        "tertiary-fixed-dim": "#ffb4a4",
+                        "progress-success": "#28A745",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-surface": "#191c1d",
+                        "on-tertiary-fixed": "#3d0600",
+                        "surface": "#f8f9fa",
+                        "inverse-primary": "#b9c3ff",
+                        "on-secondary-fixed-variant": "#384280",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#dee0ff",
+                        "on-secondary-container": "#3c4685",
+                        "on-tertiary-fixed-variant": "#7d2c1a",
+                        "on-primary-fixed-variant": "#2e3f92",
+                        "primary-container": "#041c72",
+                        "on-secondary": "#ffffff",
+                        "tertiary-container": "#520c01",
+                        "error": "#ba1a1a",
+                        "woktok-orange": "#F37021",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#7889e0",
+                        "veeba-red": "#E31E24",
+                        "secondary-fixed-dim": "#bbc3ff",
+                        "surface-container-high": "#e7e8e9",
+                        "surface-dim": "#d9dadb",
+                        "tertiary": "#2e0300",
+                        "secondary": "#505a9a",
+                        "text-slate": "#1A1A1A",
+                        "inverse-surface": "#2e3132",
+                        "outline-variant": "#c5c5d3",
+                        "surface-tint": "#4758ab",
+                        "on-error-container": "#93000a",
+                        "background": "#f8f9fa",
+                        "on-surface-variant": "#454651",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-low": "#f3f4f5",
+                        "primary-fixed-dim": "#b9c3ff",
+                        "on-background": "#191c1d",
+                        "on-primary-fixed": "#001158",
+                        "surface-container": "#edeeef",
+                        "surface-bright": "#f8f9fa",
+                        "on-primary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#000b43",
+                        "border-subtle": "#E9ECEF",
+                        "on-tertiary-container": "#d97159",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#dee1ff",
+                        "on-secondary-fixed": "#071353",
+                        "inverse-on-surface": "#f0f1f2",
+                        "tertiary-fixed": "#ffdad3",
+                        "zyro-teal": "#008080"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "40px",
+                        "container-max": "1280px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["22px", { "lineHeight": "30px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "headline-lg": ["28px", { "lineHeight": "36px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-margin-desktop h-16 w-full bg-surface dark:bg-on-surface border-b border-border-subtle dark:border-outline-variant flat no shadows">
+<div class="flex items-center gap-4">
+<span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed">VRB LMS</span>
+</div>
+<div class="flex items-center gap-4">
+<button aria-label="Notifications" class="p-2 hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant dark:text-outline" data-icon="notifications">notifications</span>
+</button>
+<button aria-label="Search" class="p-2 hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant dark:text-outline" data-icon="search">search</span>
+</button>
+<img alt="User profile" class="w-8 h-8 rounded-full object-cover" data-alt="Professional corporate headshot of an employee in a well-lit office setting. The lighting is soft and flattering, with a clean minimal background. The image should convey professionalism and approachability suitable for an enterprise LMS profile picture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBDjyG0ED43HbPgKl8XXZBZRDHdtmRGAZ18CSQFIQb4G54Di1UDUCe6fUqFbOed1gifheVSDlLf4rYhd-nUum7ku1GBt0bu_XGr5WuCUbjvBrZ7B7dKAZDUOPBCP_8py5Hzp6uCic2RUl6dBlCQrLWzKYfvAWwBVKMubMTv1T1mnxqp-4U7dJjsFq5a1DrvBGhO_tUHrx0THYwBIIHR2ykIth9aef1PsiqeTKpQmPEq1B0aqlZ1mOQ">
+</div>
+</header>
+<!-- SideNavBar (Desktop) -->
+<nav class="hidden md:flex fixed left-0 top-0 bottom-0 w-60 z-40 flex-col py-6 bg-primary dark:bg-primary-container shadow-sm mt-16">
+<div class="px-6 mb-8">
+<h2 class="text-headline-sm font-headline-sm font-bold text-on-primary">Learning Hub</h2>
+<p class="text-label-md font-label-md text-on-primary/70">VRB Consumer Products</p>
+</div>
+<ul class="flex flex-col gap-2 flex-grow px-4">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary/70 hover:text-on-primary hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-surface-container-low/10 border-l-4 border-veeba-warm-accent text-on-primary font-bold Active: scale-[0.98] transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="library_books">library_books</span>
+<span class="text-label-md font-label-md">Course Library</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary/70 hover:text-on-primary hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+<span class="text-label-md font-label-md">Leaderboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary/70 hover:text-on-primary hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-label-md font-label-md">My Profile</span>
+</a>
+</li>
+</ul>
+<div class="px-4 mt-auto">
+<ul class="flex flex-col gap-2">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary/70 hover:text-on-primary hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-label-md font-label-md">Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary/70 hover:text-on-primary hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-label-md font-label-md">Logout</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="pt-24 pb-12 px-margin-mobile md:px-margin-desktop md:ml-60 max-w-container-max mx-auto">
+<!-- Course Header -->
+<div class="mb-10">
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-outline mb-2">
+<a class="hover:text-primary" href="#">Course Library</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-on-surface">Veeba Fundamentals</span>
+</div>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h1 class="text-headline-lg font-headline-lg text-primary mb-2">Veeba Brand Masterclass</h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant max-w-2xl">Master the core values, product lines, and sales strategies for the Veeba brand. Complete all modules to earn your certification.</p>
+</div>
+<div class="flex flex-col items-end gap-2 bg-surface-container-lowest p-4 rounded-xl border border-border-subtle shadow-[0_4px_12px_rgba(0,0,0,0.05)] w-full md:w-auto">
+<div class="flex justify-between w-full md:w-48 text-label-sm font-label-sm text-on-surface-variant">
+<span>Overall Progress</span>
+<span class="font-bold text-primary">33%</span>
+</div>
+<div class="w-full h-2 bg-border-subtle rounded-full overflow-hidden">
+<div class="h-full bg-veeba-red rounded-full" style="width: 33%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Course Modules Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Module 1: COMPLETED -->
+<div class="bg-surface-container-lowest rounded-xl border border-border-subtle overflow-hidden flex flex-col relative border-t-4 border-t-veeba-red group transition-all duration-200 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+<div class="absolute top-4 right-4 z-10 bg-surface-container-lowest rounded-full p-1 shadow-sm">
+<span class="material-symbols-outlined text-progress-success bg-progress-success/10 rounded-full p-1" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="h-32 bg-surface-container flex items-center justify-center relative overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-multiply" data-alt="A clean, abstract geometric illustration representing foundational corporate history. Soft light-mode colors with subtle hints of red and warm yellow. The style is modern, vector-like, and professional, suitable for a learning management system header graphic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAbHVysLmkOXUi8EkREkUHNq8CXlwsnNbW8JV0Gily_Kt-0ezKN0ecyuH5aNzeIPJficPCa_pLC5tP4jWT_ORrxO4VIk1ZA0Fn9QxogeLIMA4WUKoc7vK0IMCND4msSGelmQCL79iqaIPIcWFbRnPI5F_NP4cQ_pPW_ck_HglBZf0GYAP2t2h1JckzfUSasEr0QYObIcgwDNayUrsJmkAfwgboHkIzlYcMw5PT4qztc558njp9BsPUS')"></div>
+<span class="material-symbols-outlined text-display-lg text-primary relative z-10 opacity-50">history_edu</span>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex items-center gap-2 mb-2">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Module 1</span>
+<span class="bg-progress-success/10 text-progress-success text-label-sm font-label-sm px-2 py-0.5 rounded-full">Completed</span>
+</div>
+<h3 class="text-headline-md font-headline-md text-primary mb-2">Brand History &amp; Values</h3>
+<p class="text-body-md font-body-md text-on-surface-variant mb-6 flex-grow">Understanding the origins of Veeba and the core principles that drive our product innovation.</p>
+<button class="w-full py-2 px-4 rounded-lg border border-border-subtle text-primary font-label-md text-label-md hover:bg-surface-container-low transition-colors">Review Module</button>
+</div>
+</div>
+<!-- Module 2: UNLOCKED / ACTIVE -->
+<div class="bg-surface-container-lowest rounded-xl border border-border-subtle overflow-hidden flex flex-col relative border-t-4 border-t-veeba-red shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+<div class="h-32 bg-surface-container flex items-center justify-center relative overflow-hidden group">
+<div class="absolute inset-0 bg-cover bg-center mix-blend-multiply opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A clean, modern flat-lay style illustration of various sauce bottles and food products on a pristine white background. High-key lighting, corporate minimalist aesthetic with subtle red and yellow brand accents. Professional LMS course cover art." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBrKhyc7hoHCRhMm_RRbMK3WbWR62kqL7kq_vrPHaARkfkqSp0QNy4pGDtiFobr7ggmvUj-kFY93Z8iG_-rz_Wzcj70gYrGFa_R7-LWLugzid5ACHMRDMAr5V_yWK-756xcp3iSZRhAkBzBDllTvvQGqlqoeZPx9GEm99f-G4H9Qw8c7LWKKBPZIepiiN0l5PvflioNMffIMMDaVHjyRS5Tp43PbYtwfBSYnoIN9lyTI3x_ywJR0m_1')"></div>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex items-center gap-2 mb-2">
+<span class="text-label-sm font-label-sm text-primary font-bold uppercase tracking-wider">Module 2</span>
+<span class="bg-veeba-warm-accent/20 text-on-surface text-label-sm font-label-sm px-2 py-0.5 rounded-full">In Progress</span>
+</div>
+<h3 class="text-headline-md font-headline-md text-primary mb-2">Product Portfolio Overview</h3>
+<p class="text-body-md font-body-md text-on-surface-variant mb-4 flex-grow">A deep dive into our top-selling condiments, sauces, and dressings categories.</p>
+<div class="mb-4">
+<div class="flex justify-between text-label-sm font-label-sm text-on-surface-variant mb-1">
+<span>Module Progress</span>
+<span>45%</span>
+</div>
+<div class="w-full h-2 bg-border-subtle rounded-full overflow-hidden">
+<div class="h-full bg-veeba-red rounded-full" style="width: 45%"></div>
+</div>
+</div>
+<button class="w-full py-2 px-4 rounded-lg bg-veeba-red text-on-error font-label-md text-label-md hover:opacity-90 transition-opacity">Continue Learning</button>
+</div>
+</div>
+<!-- Module 3: LOCKED -->
+<div class="bg-surface-container-lowest rounded-xl border border-border-subtle overflow-hidden flex flex-col relative opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+<div class="absolute inset-0 bg-surface-container-lowest/50 z-20 flex items-center justify-center backdrop-blur-[1px]">
+<div class="bg-surface rounded-full p-3 shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-outline text-[32px]" data-icon="lock">lock</span>
+</div>
+</div>
+<div class="h-32 bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-display-lg text-outline">storefront</span>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex items-center gap-2 mb-2">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Module 3</span>
+</div>
+<h3 class="text-headline-md font-headline-md text-on-surface-variant mb-2">Retail Execution Strategies</h3>
+<p class="text-body-md font-body-md text-outline mb-6 flex-grow">Best practices for shelf placement, POS displays, and driving secondary sales.</p>
+<button class="w-full py-2 px-4 rounded-lg bg-surface-container text-outline font-label-md text-label-md cursor-not-allowed" disabled="">Locked</button>
+</div>
+</div>
+<!-- Module 4: LOCKED -->
+<div class="bg-surface-container-lowest rounded-xl border border-border-subtle overflow-hidden flex flex-col relative opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+<div class="absolute inset-0 bg-surface-container-lowest/50 z-20 flex items-center justify-center backdrop-blur-[1px]">
+<div class="bg-surface rounded-full p-3 shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-outline text-[32px]" data-icon="lock">lock</span>
+</div>
+</div>
+<div class="h-32 bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-display-lg text-outline">handshake</span>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex items-center gap-2 mb-2">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Module 4</span>
+</div>
+<h3 class="text-headline-md font-headline-md text-on-surface-variant mb-2">B2B &amp; Food Service Sales</h3>
+<p class="text-body-md font-body-md text-outline mb-6 flex-grow">Tailoring the Veeba pitch for restaurants, hotels, and large-scale caterers.</p>
+<button class="w-full py-2 px-4 rounded-lg bg-surface-container text-outline font-label-md text-label-md cursor-not-allowed" disabled="">Locked</button>
+</div>
+</div>
+<!-- Module 5: LOCKED -->
+<div class="bg-surface-container-lowest rounded-xl border border-border-subtle overflow-hidden flex flex-col relative opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+<div class="absolute inset-0 bg-surface-container-lowest/50 z-20 flex items-center justify-center backdrop-blur-[1px]">
+<div class="bg-surface rounded-full p-3 shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-outline text-[32px]" data-icon="lock">lock</span>
+</div>
+</div>
+<div class="h-32 bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-display-lg text-outline">query_stats</span>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex items-center gap-2 mb-2">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Module 5</span>
+</div>
+<h3 class="text-headline-md font-headline-md text-on-surface-variant mb-2">Market Analysis &amp; Competitors</h3>
+<p class="text-body-md font-body-md text-outline mb-6 flex-grow">Understanding the competitive landscape and positioning Veeba effectively.</p>
+<button class="w-full py-2 px-4 rounded-lg bg-surface-container text-outline font-label-md text-label-md cursor-not-allowed" disabled="">Locked</button>
+</div>
+</div>
+<!-- Module 6: LOCKED -->
+<div class="bg-surface-container-lowest rounded-xl border border-border-subtle overflow-hidden flex flex-col relative opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+<div class="absolute inset-0 bg-surface-container-lowest/50 z-20 flex items-center justify-center backdrop-blur-[1px]">
+<div class="bg-surface rounded-full p-3 shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-outline text-[32px]" data-icon="lock">lock</span>
+</div>
+</div>
+<div class="h-32 bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-display-lg text-outline">verified</span>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex items-center gap-2 mb-2">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Module 6</span>
+</div>
+<h3 class="text-headline-md font-headline-md text-on-surface-variant mb-2">Final Certification Assessment</h3>
+<p class="text-body-md font-body-md text-outline mb-6 flex-grow">Comprehensive test covering all previous modules to earn your Veeba Brand Certification.</p>
+<button class="w-full py-2 px-4 rounded-lg bg-surface-container text-outline font-label-md text-label-md cursor-not-allowed" disabled="">Locked</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

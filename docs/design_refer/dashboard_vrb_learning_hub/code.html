@@ -1,0 +1,213 @@
+<!DOCTYPE html><html class="light" lang="en" style="width: 1280px; height: 698px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>VRB LMS - Brand Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "secondary-container": "#adb7fe",
+                            "outline": "#757683",
+                            "veeba-warm-accent": "#FED563",
+                            "tertiary-fixed-dim": "#ffb4a4",
+                            "progress-success": "#28A745",
+                            "surface-container-highest": "#e1e3e4",
+                            "on-surface": "#191c1d",
+                            "on-tertiary-fixed": "#3d0600",
+                            "surface": "#f8f9fa",
+                            "inverse-primary": "#b9c3ff",
+                            "on-secondary-fixed-variant": "#384280",
+                            "on-error": "#ffffff",
+                            "secondary-fixed": "#dee0ff",
+                            "on-secondary-container": "#3c4685",
+                            "on-tertiary-fixed-variant": "#7d2c1a",
+                            "on-primary-fixed-variant": "#2e3f92",
+                            "primary-container": "#041c72",
+                            "on-secondary": "#ffffff",
+                            "tertiary-container": "#520c01",
+                            "error": "#ba1a1a",
+                            "woktok-orange": "#F37021",
+                            "surface-container-lowest": "#ffffff",
+                            "on-primary-container": "#7889e0",
+                            "veeba-red": "#E31E24",
+                            "secondary-fixed-dim": "#bbc3ff",
+                            "surface-container-high": "#e7e8e9",
+                            "surface-dim": "#d9dadb",
+                            "tertiary": "#2e0300",
+                            "secondary": "#505a9a",
+                            "text-slate": "#1A1A1A",
+                            "inverse-surface": "#2e3132",
+                            "outline-variant": "#c5c5d3",
+                            "surface-tint": "#4758ab",
+                            "on-error-container": "#93000a",
+                            "background": "#f8f9fa",
+                            "on-surface-variant": "#454651",
+                            "surface-variant": "#e1e3e4",
+                            "surface-container-low": "#f3f4f5",
+                            "primary-fixed-dim": "#b9c3ff",
+                            "on-background": "#191c1d",
+                            "on-primary-fixed": "#001158",
+                            "surface-container": "#edeeef",
+                            "surface-bright": "#f8f9fa",
+                            "on-primary": "#ffffff",
+                            "on-tertiary": "#ffffff",
+                            "primary": "#000b43",
+                            "border-subtle": "#E9ECEF",
+                            "on-tertiary-container": "#d97159",
+                            "error-container": "#ffdad6",
+                            "primary-fixed": "#dee1ff",
+                            "on-secondary-fixed": "#071353",
+                            "inverse-on-surface": "#f0f1f2",
+                            "tertiary-fixed": "#ffdad3",
+                            "zyro-teal": "#008080"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.125rem",
+                            "lg": "0.25rem",
+                            "xl": "0.5rem",
+                            "full": "0.75rem"
+                    },
+                    "spacing": {
+                            "gutter": "24px",
+                            "margin-mobile": "16px",
+                            "margin-desktop": "40px",
+                            "container-max": "1280px",
+                            "base": "4px"
+                    },
+                    "fontFamily": {
+                            "label-md": ["Inter"],
+                            "body-lg": ["Inter"],
+                            "headline-md": ["Inter"],
+                            "body-md": ["Inter"],
+                            "headline-lg-mobile": ["Inter"],
+                            "display-lg": ["Inter"],
+                            "label-sm": ["Inter"],
+                            "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                            "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                            "headline-md": ["22px", {"lineHeight": "30px", "fontWeight": "600"}],
+                            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                            "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                            "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                            "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                            "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-margin-desktop h-16 w-full bg-surface border-b border-border-subtle">
+<div class="flex items-center gap-2">
+<span class="text-headline-md font-headline-md font-bold text-primary">VRB LMS</span>
+</div>
+<div class="flex items-center gap-6 text-on-surface-variant">
+<button aria-label="Search" class="hover:bg-surface-container-low transition-colors p-2 rounded-full hidden">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<button aria-label="Notifications" class="hover:bg-surface-container-low transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-border-subtle cursor-pointer hover:bg-surface-container-low transition-colors p-2 rounded-lg">
+<img alt="User profile" class="w-8 h-8 rounded-full object-cover border border-border-subtle" data-alt="A professional headshot of a corporate employee in a brightly lit modern office setting, representing a user profile picture. The lighting is clean and crisp, fitting a professional enterprise application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBT8Nfwa_x_HBjx87vO8IUXRD1T68isZ_RBJceQ-Oq_7ExPJB_uOuHupXvQAMkiOV0V-GcRy_llrDyOfFbf-xE9pTqL4LzQXvT28_RHrKJopNsdj1nGe33742RL1McmKFwCAgTOXB_JkcOMglaB0r8hWnEdFi4NNWVGDGN6Vj7CK6K5RCW1ZdgdDneMOny7pE1wRgPaXZu_-PJvM-B77yn7mNbHiPEXuXt9JRuv1c7tkxN1vgNuwRjP">
+<div class="hidden md:flex flex-col">
+<span class="text-label-md font-label-md text-on-surface">Jane Doe</span>
+<span class="text-label-sm font-label-sm text-outline">Regional Manager</span>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 mt-16 flex flex-col items-center justify-center p-gutter">
+<div class="w-full max-w-[1280px] flex flex-col gap-8">
+<div class="text-center mb-4">
+<h1 class="text-display-lg font-display-lg text-primary mb-2">Select Your Brand Module</h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant max-w-2xl mx-auto">Access specialized training, product knowledge, and compliance materials tailored for each brand portfolio.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Veeba Card -->
+<a class="group relative bg-surface-container-lowest border border-border-subtle rounded-xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:-translate-y-1 block h-full flex flex-col" href="#">
+<div class="h-2 w-full bg-veeba-red"></div>
+<div class="p-6 flex-1 flex flex-col items-center text-center">
+<div class="h-24 flex items-center justify-center mb-6 w-full px-8">
+<img alt="Veeba Logo" class="max-h-full max-w-full object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XDMu3uN2yMPeSxFOss_ak8RbmNXNfAMMCGrgVQfuYD8VZuJj-F8sDeHMGhCXc5kkFk5QKIL8zseX2I8fMyhd9GOkkWkZtkxWHiS_q7okktH5IpRpZ9JULXiJzYxGyu-x2uQts0I33RhXgrnYG0-jipj-vvl6qwyjjPUZOJ5yyjEya2D3QUjm6M6SPthD2lW4M0uHDdCAS53aseT3qSwOHV4lCxQ-u2nxequmEeGKP3P5YLCM1znOkMUQ">
+</div>
+<h2 class="text-headline-md font-headline-md text-on-surface mb-2">Veeba Mastery</h2>
+<p class="text-body-md font-body-md text-on-surface-variant mb-6 line-clamp-2">Condiments, sauces, and culinary innovations training module.</p>
+<div class="mt-auto w-full">
+<div class="flex justify-between items-center mb-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Module Progress</span>
+<span class="text-label-sm font-label-sm font-bold text-veeba-red">3 of 5</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-veeba-red rounded-full" style="width: 60%"></div>
+</div>
+</div>
+</div>
+</a>
+<!-- Wok Tok Card -->
+<a class="group relative bg-surface-container-lowest border border-border-subtle rounded-xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:-translate-y-1 block h-full flex flex-col" href="#">
+<div class="h-2 w-full bg-woktok-orange"></div>
+<div class="p-6 flex-1 flex flex-col items-center text-center">
+<div class="h-24 flex items-center justify-center mb-6 w-full px-8">
+<img alt="Wok Tok Logo" class="max-h-full max-w-full object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VPWbJEy8wJI2CCaaU9bd9ctdo56uhIr5Ao3z5xy9MS_Po4wuwPVbTDoelnxzKrnNt8Es1Kr7eY6CZ06kndnZjoYuTbdJ4Jacme_umbTvVi1sma3VHA1KyZark2eqrdFLE-kba3lDi-vpbnn441slb5u8oJZCe7YHW1Q4becNjLr2fm_9A0yeG8icaxX8LGq8URDpwL1LbrowCNMAZOCKe_XbiRusDqPG65C9Is_Zw2rg0SgChO1Vv0lVc">
+</div>
+<h2 class="text-headline-md font-headline-md text-on-surface mb-2">Wok Tok Essentials</h2>
+<p class="text-body-md font-body-md text-on-surface-variant mb-6 line-clamp-2">Pan-Asian cuisine, noodles, and ready-to-cook portfolio.</p>
+<div class="mt-auto w-full">
+<div class="flex justify-between items-center mb-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Module Progress</span>
+<span class="text-label-sm font-label-sm font-bold text-woktok-orange">1 of 5</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-woktok-orange rounded-full" style="width: 20%"></div>
+</div>
+</div>
+</div>
+</a>
+<!-- Zyro Card -->
+<a class="group relative bg-surface-container-lowest border border-border-subtle rounded-xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:-translate-y-1 block h-full flex flex-col" href="#">
+<div class="h-2 w-full bg-zyro-teal"></div>
+<div class="p-6 flex-1 flex flex-col items-center text-center">
+<div class="h-24 flex items-center justify-center mb-6 w-full px-8">
+<img alt="Zyro Logo" class="max-h-full max-w-full object-contain opacity-80" data-alt="A clean, minimalist logo for a brand named Zyro, featuring bold geometric sans-serif typography in a deep teal color. The background is pristine white, fitting a high-end consumer goods corporate identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmcy2turYEWhQZdDy8bD44X0KaQQKN8FfrO050_nfp8kiQoA0G_8ISO1waWMszHaAP2wp7WkVnsTv3bKxuQivJnCtgn-n3IxfXHLSfafg_DLzCtPeokPmjwXiIm8PD29Osmw3lIF4Br-Kf06KsVjj4FYigmvIiRLAii1iXp7U9OigfVCq5qIiD1RbNlZSUHaGSJwwhEF-EPIvzSVN2ph1JlSE0r1vQhVz7QnbHCqo-tAzI5INNdmDi">
+</div>
+<h2 class="text-headline-md font-headline-md text-on-surface mb-2">Zyro Dynamics</h2>
+<p class="text-body-md font-body-md text-on-surface-variant mb-6 line-clamp-2">Beverages, energy drinks, and refreshment category standards.</p>
+<div class="mt-auto w-full">
+<div class="flex justify-between items-center mb-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Module Progress</span>
+<span class="text-label-sm font-label-sm font-bold text-zyro-teal">5 of 5</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-progress-success rounded-full flex items-center justify-end pr-1" style="width: 100%">
+<span class="material-symbols-outlined text-[10px] text-white" data-icon="check">check</span>
+</div>
+</div>
+</div>
+</div>
+</a>
+</div>
+<div class="mt-8 flex justify-center">
+<button class="flex items-center gap-2 bg-surface-container-lowest border border-border-subtle px-6 py-3 rounded-lg text-label-md font-label-md text-primary hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="history">history</span>
+                    View Corporate Compliance Training
+                </button>
+</div>
+</div>
+</main>
+</body></html>

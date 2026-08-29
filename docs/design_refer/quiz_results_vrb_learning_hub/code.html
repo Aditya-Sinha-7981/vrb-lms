@@ -1,0 +1,243 @@
+<!DOCTYPE html><html lang="en" style="width: 1280px; height: 638px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Quiz Results - VRB Learning Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#505b92",
+                        "success": "#28A745",
+                        "on-surface-variant": "#45464f",
+                        "inverse-primary": "#b9c3ff",
+                        "on-primary-fixed-variant": "#384379",
+                        "on-primary-fixed": "#09164b",
+                        "surface-container-high": "#e7e8e9",
+                        "primary-fixed-dim": "#b9c3ff",
+                        "outline-variant": "#c6c5d1",
+                        "error": "#BA1A1A",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-low": "#f3f4f5",
+                        "tertiary-fixed-dim": "#b9c3ff",
+                        "on-error-container": "#93000a",
+                        "secondary": "#5d5d69",
+                        "surface-container": "#edeeef",
+                        "surface-dim": "#d9dadb",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#7680bb",
+                        "on-surface": "#191c1d",
+                        "secondary-container": "#e2e1ef",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-grey": "#F3F4F5",
+                        "card-bg": "#FFFFFF",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#000000",
+                        "tertiary-container": "#001158",
+                        "icon-grey": "#757683",
+                        "surface": "#f8f9fa",
+                        "on-tertiary-fixed": "#001158",
+                        "on-tertiary-fixed-variant": "#2e3f92",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#6d7ed4",
+                        "veeba-red": "#E31E24",
+                        "tertiary-fixed": "#dee1ff",
+                        "primary-container": "#09164b",
+                        "on-secondary-container": "#63636f",
+                        "secondary-fixed": "#e2e1ef",
+                        "surface-bright": "#f8f9fa",
+                        "text-main": "#191C1D",
+                        "outline": "#767680",
+                        "on-background": "#191c1d",
+                        "inverse-on-surface": "#f0f1f2",
+                        "zyro-teal": "#008080",
+                        "on-navy": "#FFFFFF",
+                        "background": "#f8f9fa",
+                        "woktok-orange": "#F37021",
+                        "veeba-warm": "#FED563",
+                        "secondary-fixed-dim": "#c6c5d3",
+                        "on-secondary-fixed": "#1a1b25",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#e1e3e4",
+                        "border-base": "#E9ECEF",
+                        "on-secondary-fixed-variant": "#454651",
+                        "surface-variant": "#e1e3e4",
+                        "primary-fixed": "#dee1ff",
+                        "primary": "#000000",
+                        "on-primary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "max-width": "1280px",
+                        "standard-gap": "24px",
+                        "margin-desktop": "40px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "display": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "label": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "display": ["36px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["22px", { "lineHeight": "30px", "fontWeight": "600" }],
+                        "body": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col">
+<!-- Minimal Top Bar (Distraction Free) -->
+<header class="bg-card-bg border-b border-border-base sticky top-0 z-50 h-[64px]">
+<div class="flex items-center justify-between px-margin-desktop w-full max-w-max-width mx-auto h-full">
+<div class="flex items-center gap-4">
+<button class="text-icon-grey hover:text-primary transition-colors flex items-center justify-center rounded-full p-2 hover:bg-surface-grey">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+<div class="flex flex-col">
+<span class="text-label-sm font-label-sm text-secondary">Veeba Brand Masterclass</span>
+<span class="text-label font-label text-primary font-bold">VRB Learning Hub</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-grey flex items-center justify-center border border-border-base">
+<span class="text-secondary text-label font-label">JD</span>
+</div>
+</div>
+</header>
+<main class="flex-grow py-12 px-margin-mobile md:px-margin-desktop">
+<div class="max-w-max-width mx-auto grid grid-cols-1 xl:grid-cols-2 gap-standard-gap items-start">
+<!-- PASS CARD -->
+<div class="w-full max-w-[640px] mx-auto bg-card-bg rounded-xl border border-border-base relative overflow-hidden flex flex-col">
+<div class="h-1 w-full bg-success absolute top-0 left-0"></div>
+<div class="p-8 flex flex-col items-center text-center">
+<!-- Circular Score Ring -->
+<div class="relative w-32 h-32 mb-6">
+<svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="#E9ECEF" stroke-width="10"></circle>
+<circle class="transition-all duration-1000 ease-out" cx="50" cy="50" fill="none" r="45" stroke="#28A745" stroke-dasharray="282.74" stroke-dashoffset="56.54" stroke-width="10"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-headline-lg font-headline-lg text-success">80%</span>
+</div>
+</div>
+<h2 class="text-headline-lg font-headline-lg text-primary mb-2">Module passed</h2>
+<p class="text-body font-body text-secondary mb-8">You've unlocked Module 3: Retail Execution</p>
+<!-- Stat Row -->
+<div class="flex flex-wrap justify-center gap-6 mb-8 w-full bg-surface-grey rounded-lg p-4 border border-border-base">
+<div class="text-center">
+<p class="text-label-sm font-label-sm text-secondary mb-1">Score</p>
+<p class="text-label font-label text-primary">8/10</p>
+</div>
+<div class="w-px bg-border-base hidden sm:block"></div>
+<div class="text-center">
+<p class="text-label-sm font-label-sm text-secondary mb-1">Time</p>
+<p class="text-label font-label text-primary">12m 45s</p>
+</div>
+<div class="w-px bg-border-base hidden sm:block"></div>
+<div class="text-center">
+<p class="text-label-sm font-label-sm text-secondary mb-1">Attempt</p>
+<p class="text-label font-label text-primary">1 of 3</p>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-col sm:flex-row w-full gap-4 justify-center">
+<button class="bg-primary-container text-on-navy text-label font-label px-6 py-3 rounded-DEFAULT hover:bg-on-primary-fixed-variant transition-colors border border-transparent w-full sm:w-auto order-1 sm:order-2">
+                            Continue to next module
+                        </button>
+<button class="bg-card-bg text-primary-container border border-border-base text-label font-label px-6 py-3 rounded-DEFAULT hover:bg-surface-grey transition-colors w-full sm:w-auto order-2 sm:order-1">
+                            Review my answers
+                        </button>
+</div>
+</div>
+</div>
+<!-- FAIL CARD -->
+<div class="w-full max-w-[640px] mx-auto flex flex-col gap-4">
+<div class="bg-card-bg rounded-xl border border-border-base relative overflow-hidden flex flex-col">
+<div class="h-1 w-full bg-error absolute top-0 left-0"></div>
+<div class="p-8 flex flex-col items-center text-center">
+<!-- Circular Score Ring -->
+<div class="relative w-32 h-32 mb-6">
+<svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="#E9ECEF" stroke-width="10"></circle>
+<circle class="transition-all duration-1000 ease-out" cx="50" cy="50" fill="none" r="45" stroke="#BA1A1A" stroke-dasharray="282.74" stroke-dashoffset="155.5" stroke-width="10"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-headline-lg font-headline-lg text-error">45%</span>
+</div>
+</div>
+<h2 class="text-headline-lg font-headline-lg text-primary mb-2">Not quite — 60% needed to pass</h2>
+<p class="text-body font-body text-secondary mb-8">2 attempts remaining</p>
+<!-- Actions -->
+<div class="flex flex-col w-full gap-4 justify-center sm:flex-row">
+<button class="bg-primary-container text-on-navy text-label font-label px-6 py-3 rounded-DEFAULT hover:bg-on-primary-fixed-variant transition-colors border border-transparent w-full sm:w-auto flex-1">
+                                Retry assessment
+                            </button>
+<div class="flex flex-col sm:flex-row gap-4 flex-1">
+<button class="bg-card-bg text-primary-container border border-border-base text-label font-label px-4 py-3 rounded-DEFAULT hover:bg-surface-grey transition-colors w-full">
+                                    Review my answers
+                                </button>
+<button class="bg-card-bg text-secondary border border-border-base text-label font-label px-4 py-3 rounded-DEFAULT hover:bg-surface-grey transition-colors w-full">
+                                    Back to module
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Below the fold: What you missed -->
+<div class="bg-card-bg border border-border-base rounded-xl overflow-hidden">
+<button class="w-full px-6 py-4 flex items-center justify-between hover:bg-surface-grey transition-colors text-left" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-180')">
+<span class="text-label font-label text-primary">What you missed (4)</span>
+<span class="material-symbols-outlined chevron transition-transform duration-200 text-icon-grey" data-icon="expand_more">expand_more</span>
+</button>
+<div class="hidden border-t border-border-base divide-y divide-border-base">
+<div class="p-4 flex items-start gap-3">
+<span class="material-symbols-outlined text-error mt-0.5" data-icon="close">close</span>
+<div>
+<p class="text-label font-label text-primary">Question 2: Veeba Product Core Values</p>
+<p class="text-body font-body text-secondary mt-1 text-sm">Identifying the primary target demographic for the new sauce line.</p>
+</div>
+</div>
+<div class="p-4 flex items-start gap-3">
+<span class="material-symbols-outlined text-error mt-0.5" data-icon="close">close</span>
+<div>
+<p class="text-label font-label text-primary">Question 5: Shelf Placement Strategies</p>
+<p class="text-body font-body text-secondary mt-1 text-sm">Eye-level vs. bottom-shelf velocity rates.</p>
+</div>
+</div>
+<div class="p-4 flex items-start gap-3">
+<span class="material-symbols-outlined text-error mt-0.5" data-icon="close">close</span>
+<div>
+<p class="text-label font-label text-primary">Question 7: Handling Objections</p>
+<p class="text-body font-body text-secondary mt-1 text-sm">Proper response framework when a retailer cites margin concerns.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Component from JSON - Not rendered as per rules for linear/transactional intent -->
+</body></html>
