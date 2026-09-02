@@ -36,9 +36,9 @@ public course-selling site — employees only, bulk-imported from HR, logging
 in via an Employee Code. Three brands (Veeba, Wok Tok, Zyro), each employee
 may belong to multiple brands. Core mechanic: sequential modules gated by
 quiz pass/fail, feeding a **region-segmented** leaderboard (Brand → State →
-City), with configurable/non-finalized ranking logic, and certificates for
-top performers (mechanism TBD — see ARCHITECTURE.md § Certificates, OPEN).
-Full detail in `docs/PROJECT_CONTEXT.md`.
+City), with configurable/non-finalized ranking logic, and PDF certificates
+for top performers (built: `local_vrbcert`, see ARCHITECTURE.md
+§ Certificates — RESOLVED). Full detail in `docs/PROJECT_CONTEXT.md`.
 
 ## The one structural fact that matters most
 
@@ -117,8 +117,10 @@ not just a directory listing.
 - Don't touch hosting-account-level settings (PHP version, document roots,
   SSL) even with server access later — see `docs/DEPLOYMENT.md`.
 - Don't upgrade Moodle core without explicit confirmation.
-- Don't build certificate-issuing logic until the plugin-vs-badge decision
-  in `docs/ARCHITECTURE.md` is resolved.
+- Certificates are RESOLVED (2026-09-02): custom `local_vrbcert` plugin,
+  PDF via bundled TCPDF, consuming `local_vrblms` as-is. The final
+  qualification rule, artwork, and issuance cadence are still client
+  decisions — keep them config-driven, don't hardcode.
 - Don't hardcode the leaderboard ranking formula — must stay config-driven
   per `docs/PROJECT_CONTEXT.md` and `docs/TASKS.md`.
 - Only commit to git when the user explicitly asks.

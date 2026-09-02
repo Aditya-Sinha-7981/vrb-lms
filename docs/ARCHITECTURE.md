@@ -162,27 +162,40 @@ research was specific to the LearnDash evaluation that was ultimately
 rejected. Not applicable here. Note this in case old research surfaces during
 work — it does not apply to Moodle.
 
-## Certificates — OPEN, unresolved
+## Certificates — RESOLVED 2026-09-02: custom `local_vrbcert` plugin, PDF
 
-No certificate plugin is installed in the local dev environment as of this
-writing. Two candidate approaches, neither fully decided:
+**Decision (user, 2026-09-02):** a fully custom, self-coded plugin issuing
+**PDF** certificates. Not `mod_customcert` (its activity-module model —
+course context, `cmid`, completion-triggered issuance — fights our
+ranking-driven, cross-course trigger, and it carried a real Moodle-5.1.5
+third-party compatibility risk). Not core badges (the client wants a
+printable PDF, not an OpenBadge).
 
-1. **A dedicated certificate plugin** (e.g. Custom Certificate) — need to
-   verify its `version.php` `requires` field against the installed Moodle
-   version (`2025100605.05` / branch `501`) before assuming compatibility.
-   Do not assume an older plugin is compatible with Moodle 5.1 without
-   checking this directly.
-2. **Moodle core badges** (`core_badges`) — VERIFIED that `badge::issue()`
-   can issue a badge to an arbitrary determined `user_id`, which is exactly
-   what's needed since certificate qualification is decided by our own
-   ranking logic, not Moodle's built-in "completed a course" trigger. The
-   open question here is a PRODUCT decision, not technical: does a badge
-   (an OpenBadge — image + JSON) satisfy the client's idea of "a certificate
-   of appreciation," or do they expect a formatted, printable PDF?
+Built as `public/local/vrbcert/` (see `LOG.md` 2026-09-02 and
+`docs/temp docs/vrbcert-plugin-build-plan.md`):
 
-**Do not silently pick one of these.** This needs an explicit decision
-(ideally with client input on what "certificate" means to them) before
-building the qualification-trigger logic around it.
+- **Engine:** Moodle's bundled TCPDF wrapper `\pdf` (`lib/pdflib.php`) —
+  no external dependency. Fixed A4-landscape code-drawn layout; swappable
+  wording, signatory, and per-brand name + band colour via settings.
+  Optional background-image artwork is a deferred add (client art pending).
+- **Data source:** consumes `\local_vrblms\api` (`get_leaderboard` per
+  Brand, `get_overall_leaderboard`) **exactly as-is** — every returned row
+  is a qualifier, no re-ranking/re-filtering; `rank`/`score_percent` are
+  copied onto the PDF for display only. `local_vrblms` was not modified.
+- **Two independent tracks:** per-brand Top N (default 3) and overall Top N
+  (default 10), both config-driven. An employee qualifying in several
+  brands and/or overall gets one certificate per (brand-or-overall,
+  period) — multiple certificates per period is expected.
+- **Idempotent issuance** via `local_vrbcert_issued` (unique on
+  `userid, brandkey, period`; PDFs in the File API). `issuer::run()` skips
+  existing, `$reissue` replaces, a new `period` starts a fresh cycle.
+- **Trigger:** `\local_vrbcert\task\issue_certificates` scheduled task,
+  **disabled by default** — issuance cadence is an open business decision;
+  run manually (admin "Issue now" page, or the CLI task) meanwhile.
+
+**Still open (not build blockers, need client input before go-live):** the
+final qualification rule (the two-track Top-N defaults are placeholders),
+the certificate artwork, and the issuance cadence.
 
 ## Custom plugin architecture
 

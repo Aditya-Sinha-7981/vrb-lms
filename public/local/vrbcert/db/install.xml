@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/vrbcert/db" VERSION="20260902" COMMENT="Tables for local_vrbcert (issued PDF certificates)."
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="local_vrbcert_issued" COMMENT="One row per issued certificate: unique on (userid, brandkey, period).">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Recipient user id."/>
+        <FIELD NAME="brandkey" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Brand cohort idnumber (e.g. brand_veeba) for the per-brand track, or the literal 'overall' for the overall track."/>
+        <FIELD NAME="brandname" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" SEQUENCE="false" COMMENT="Display snapshot of the brand/overall name at issue time."/>
+        <FIELD NAME="period" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" COMMENT="Award period label, e.g. 2026."/>
+        <FIELD NAME="track" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="perbrand" SEQUENCE="false" COMMENT="perbrand or overall."/>
+        <FIELD NAME="certrank" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Leaderboard position at issue time (from the API row, display only)."/>
+        <FIELD NAME="scorepercent" TYPE="number" LENGTH="6" DECIMALS="2" NOTNULL="false" SEQUENCE="false" COMMENT="Score percent at issue time (from the API row, display only)."/>
+        <FIELD NAME="strategykey" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="best" SEQUENCE="false" COMMENT="Ranking strategy key in effect at issue time."/>
+        <FIELD NAME="filename" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" SEQUENCE="false" COMMENT="Stored PDF filename in the local_vrbcert/certificate filearea (itemid = this row id)."/>
+        <FIELD NAME="issuedby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Admin user id who triggered issuance, or 0 for cron."/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="user_brand_period" UNIQUE="true" FIELDS="userid, brandkey, period"/>
+        <INDEX NAME="period_track" UNIQUE="false" FIELDS="period, track"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

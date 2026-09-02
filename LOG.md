@@ -2253,3 +2253,294 @@ this file and not need the full prior conversation re-explained.
   - The review page has no grade-to-pass in the DOM — `view.php`'s
     `.quizinfo` does ("Grade to pass: 60.00 out of 100.00") if a future
     change needs the real threshold there.
+
+## [2026-09-02] — Employee-facing UI is complete (checkpoint entry)
+**Agent:** Claude Code
+**What:** Marking the employee-facing UI design-match build as **done**.
+  This is a consolidating checkpoint, not new work — it records that every
+  phase of the employee-UI plan (`docs/temp docs/employee-ui-build-plan.md`)
+  has been built, verified, and committed across the entries above:
+  - **Phase 0** — token layer / Inter / flat elevation / navy primary +
+    the "force light colour scheme everywhere" follow-up
+    (2026-08-29 ×2).
+  - **Phase 1** — logged-out index / hero front page (2026-08-29).
+  - **Phase 2** — login page: branded card, "Username / Employee Code"
+    label, field icons, navy accent (2026-08-29).
+  - **Phase 3** — `/my/courses.php` restyled into the brand-selection
+    chooser (stock `block_myoverview` cards + injected heading)
+    (2026-08-30).
+  - **Phase 4** — leaderboard visual pass (`.vrb-lb-*` system, rank
+    badges, avatars, own-row highlight) + "Leaderboard" added to both the
+    nav drawer and the primary header nav (2026-08-30 ×2).
+  - **Phase 5 (Option A, CSS-only)** — Topics course-page brand lift,
+    distraction-free quiz attempt page, quiz view/instructions, plus the
+    two follow-ups pushing the attempt page to the "assessment" design and
+    building the quiz review + results screens (first theme JS,
+    `javascript/quizresult.js`) (2026-08-30 ×3).
+  All of it lives in `theme_vrblms` (+ `local_vrblms` for the leaderboard
+  page) — no core edits, no `theme_moove` edits, no `$THEME->scss`, no
+  AMD/grunt build, no `$THEME->layouts` override. Committed through
+  `bf225c57997`.
+**Files touched:** none in this entry (documentation checkpoint only).
+**Verification done:** none new — see the per-phase entries above for the
+  live-browser verification done at the time each phase landed.
+**Gotchas / what "complete" does and does not mean here:**
+  - "Complete" = the CSS-only ("Option A") scope agreed with the user on
+    2026-08-30. The richer designs that need a course-format renderer (the
+    3-column module-card grid with cover art and per-module progress) and
+    any `format_vrblms` / `mod_quiz` renderer work are **explicitly out of
+    scope** and not done — the stock accordion/cards were branded in place
+    instead.
+  - **Not visually verified:** the admin/manager leaderboard filter-form
+    view (`local/vrblms:viewfullleaderboard`) — no admin creds in-session
+    on the Phase 4 pass; the employee view is fully verified. Check it on
+    the next admin login.
+  - Brand banners/accents are plain colour blocks keyed to
+    `data-course-id` / `body.course-<id>` (Veeba=2, Wok Tok=3, Zyro=4) —
+    environment-specific, and real brand logos/wordmarks are still pending
+    from the client (drop into `theme/vrblms/pix/` when they arrive).
+  - The pass threshold is hardcoded 60% in `quizresult.js` — fine while
+    all three brand quizzes share that mark; needs the real per-quiz value
+    if that ever changes.
+  - Next up on the plan is **Phase 5 of `docs/TASKS.md`** — `report_vrblms`
+    (admin CSV-exportable regional report) — which is unrelated to the
+    employee UI and still not started. `local_vrblms\api` already supports
+    it.
+
+## [2026-09-02] — Built `local_vrbcert`: custom PDF top-performer certificate plugin (Phase B, part 1)
+**Agent:** Claude Code
+**What:** New plugin `public/local/vrbcert/` — a fully custom, self-coded
+  certificate system that issues **PDF** certificates to leaderboard top
+  performers. Built ahead of `report_vrblms` (TASKS.md Phase 5) at the
+  user's direction; certificates were made the current priority. Chosen
+  over `mod_customcert` (its activity-module model fights a ranking-driven,
+  cross-course trigger, and it carried a real Moodle-5.1.5 third-party
+  compatibility risk) and over core badges. Plan:
+  `docs/temp docs/vrbcert-plugin-build-plan.md` (+ the master
+  `docs/temp docs/remaining-functionality-build-plan.md`).
+  - **Engine:** Moodle's bundled TCPDF wrapper — `\pdf`
+    (`public/lib/pdflib.php:159`), font `freesans` (bundled, Unicode). No
+    external dependency, no Composer, no AMD build.
+  - **Consumes `\local_vrblms\api` EXACTLY as-is** (hard constraint from
+    the user): `api::get_leaderboard($brandidnumber, null, null,
+    $strategykey, $topn)` per Brand from `api::get_brands()`, and
+    `api::get_overall_leaderboard(null, null, $strategykey, $topn)`. Every
+    row those return **is** a qualifier — no re-ranking, re-sorting,
+    re-filtering or reinterpretation. The row's `rank` / `score_percent`
+    are copied onto the certificate for display only. **No
+    `attempt_repository` call, no cohort-id lookup** — the per-brand
+    certificate is keyed by the brand cohort *idnumber* string
+    (`brand_veeba` …), the overall one by the literal `overall`.
+    `local_vrblms` was **not modified** (confirmed its `api.php` already
+    exposes `rank`, `score_percent`, `fullname`, `idnumber` and a Top-N
+    `$limit`).
+  - **Two independent qualification tracks, both on by default:**
+    per-brand (Top N, default 3) and overall (Top N, default 10). An
+    employee who places in several brand leaderboards and/or the overall
+    one qualifies **independently in each** and receives **one certificate
+    per (brand-or-overall, period)**. Verified: 8 of the 19 issued in the
+    test run are multi-track (e.g. Rajesh Sharma → `brand_veeba` + `overall`).
+  - **Config-driven** (`settings.php`, under Site admin → Plugins → Local
+    plugins): master `enabled`, `perbrand_enabled`/`perbrand_topn`,
+    `overall_enabled`/`overall_topn`, `strategykey` (reuses
+    `\local_vrblms\ranking\strategy_manager` for the option list — "site
+    default" = follow local_vrblms), `period` (award-cycle label, default
+    `date('Y')`), certificate title / presented-to line / two tokenised
+    body lines / signatory name+title, default accent colour + per-brand
+    label & colour overrides (Veeba/Wok Tok/Zyro). `score_threshold` mode
+    was left out of this build (noted in the plan).
+  - **Idempotent issuance.** New table `local_vrbcert_issued`
+    (`db/install.xml`; columns incl. `brandkey`, `period`, `track`,
+    `certrank`, `scorepercent`, `strategykey`, `filename`), unique on
+    `(userid, brandkey, period)`. `issuer::run($period, $issuedby,
+    $reissue)` skips anyone who already holds a cert for that
+    brand/period; `$reissue = true` deletes + regenerates (new row id,
+    old stored file removed). Bumping `period` issues a fresh set and
+    leaves prior periods intact. PDFs stored via the File API (component
+    `local_vrbcert`, filearea `certificate`, `itemid` = the row id, system
+    context), served by `local_vrbcert_pluginfile()` in `lib.php` with an
+    owner-or-manager access check.
+  - **Trigger:** `\local_vrbcert\task\issue_certificates` scheduled task
+    registered in `db/tasks.php` but **`disabled => 1`** — issuance
+    cadence is a business decision; run it manually meanwhile (admin page
+    "Issue now" button, or
+    `php admin/cli/scheduled_task.php --execute='\local_vrbcert\task\issue_certificates'`).
+  - **Surfaces:** employee `mycertificates.php` (own certs list +
+    per-cert download, nav-drawer node "My certificates" via
+    `local_vrbcert_extend_navigation`, capability `local/vrbcert:viewown`
+    granted to the `user` archetype); admin `index.php` under Site admin →
+    Reports → "VRB certificates" (`local/vrbcert:manage`) — config
+    summary, inline **Preview** (sample PDF from current settings + dummy
+    data, no DB writes), **Issue now** form (period + re-issue checkbox),
+    and an **issued list** filterable by period/brand with per-row
+    Download + Revoke.
+  - **Privacy provider** implemented (`classes/privacy/provider.php`) —
+    metadata for `local_vrbcert_issued` + the `core_files` link, plus
+    export / delete for user, context, and userlist. (`local_vrblms` has
+    none because it stores nothing; `local_vrbcert` does, so it needs one.)
+**Files touched:** all new under `public/local/vrbcert/`: `version.php`,
+  `settings.php`, `lib.php`, `index.php`, `mycertificates.php`,
+  `db/{install.xml,access.php,tasks.php}`, `lang/en/local_vrbcert.php`,
+  `classes/{certificate_data,template,certificate_generator,
+  issued_certificate,issuer}.php`,
+  `classes/task/issue_certificates.php`, `classes/privacy/provider.php`.
+  Database: `local_vrbcert` registered via `admin/cli/upgrade.php`
+  (new table `local_vrbcert_issued`, 3 capabilities, 1 disabled scheduled
+  task, 20 config defaults). No repo files outside the new plugin dir; no
+  core, Moove, or `local_vrblms` changes.
+**Verification done:**
+  - `php -l` on every plugin PHP file (clean).
+  - `core_component::get_plugin_list('local')` shows `vrbcert` after a
+    cache purge; `admin/cli/upgrade.php --non-interactive` →
+    `-->local_vrbcert ++ Success ++`, all 20 settings registered. DB check
+    confirmed the table's 13 columns, the 3 `local/vrbcert:*`
+    capabilities, and the scheduled task present with `disabled=1`.
+  - **CLI verification script** (scratchpad, not committed —
+    `vrbcert_verify.php`, same pattern as Phase 3/4) against the real
+    20-employee / 3-brand dataset: **14/14 assertions passed.** Covered:
+    per-brand Top 3 (9) + overall Top 10 = 19 qualifier slots, all 19
+    issued with a valid stored PDF (`%PDF` header, >500 bytes); every
+    issued row's `certrank`/`scorepercent` equal the API row verbatim;
+    8 multi-track recipients confirmed (brand + overall); re-run issues
+    nothing (all 19 skipped); `$reissue=true` replaces all 19 (new row
+    ids, zero orphaned files); a different `period` issues a fresh 19 and
+    leaves the first period intact; `best` vs `first` strategy produces
+    different per-brand sets (9 vs 9, not identical).
+  - Generated a real preview PDF via CLI — 146 655 bytes, `%PDF-1.7`.
+  - **Browser, logged in as a real employee (Kavita Yadav, multi-brand):**
+    `/local/vrbcert/mycertificates.php` renders her **two** 2026
+    certificates — "Overall" (rank 8) and "Zyro" (rank 2) — matching the
+    issuance exactly; her own cert downloads through `pluginfile.php`;
+    requesting **another employee's** cert file
+    (`.../certificate/58/...`, Rajesh Sharma's) returns "Sorry, the
+    requested file could not be found" (ownership check works); the admin
+    page `/local/vrbcert/index.php` returns **Access denied** for her
+    (`local/vrbcert:manage` gate works).
+  - Left a real issued set in place for `period = 2026` (19 certs) so the
+    feature is explorable.
+**Gotchas for future agents:**
+  - **DB column is `certrank`, not `rank`.** `rank` is a reserved word in
+    MariaDB 10.2+ / SQL:2016 (window functions) — the XMLDB field and all
+    code use `certrank`; the `certificate_data` PHP property is still
+    `rank` and is mapped across in `issued_certificate::create()`.
+  - **`issuer` must only ever call `\local_vrblms\api::*`** — never
+    `attempt_repository` or a cohort table. The per-brand certificate key
+    is the cohort **idnumber** (`brand_veeba`), chosen specifically so no
+    `id` lookup (which would mean reaching past the API) is needed, and so
+    the unique key has no NULLs (overall uses the literal string
+    `overall`, not NULL — MariaDB treats NULLs as distinct in a unique
+    index, which would have let duplicate overall certs through).
+  - The test dataset has most employees at 0.0% (the dummy brand quizzes
+    were only ever attempted by a handful of accounts). The leaderboard
+    API still returns a full Top-N by its own name-based tie-break, and
+    `local_vrbcert` issues to exactly that set — correct behaviour per the
+    "consume verbatim" constraint, not a bug. Real content will make the
+    sets meaningful.
+  - `certificate_generator` uses fixed mm coordinates on an A4-landscape
+    page (297×210). It's a clean code-drawn layout (border, wordmark,
+    brand band, title, name, two body lines, signature + date, footer
+    ref) — **no background image**. A `backgroundimage` setting was
+    planned but deferred; when the client supplies real artwork, add the
+    filemanager setting + an `Image(0,0,297,210)` first-layer and retune
+    the text Y-positions (~half a day).
+  - `send_stored_file(..., $forcedownload = true)` is hardcoded in
+    `local_vrbcert_pluginfile()` — certificate links always download
+    rather than render inline. Intentional.
+  - **Not yet verified in-browser:** the admin management page UI itself
+    (Preview button, Issue-now form, issued list, Revoke) — needs admin
+    credentials, same gap as the Phase 4 admin leaderboard-filter view.
+    The page's access gate (deny for non-managers) *is* verified. Do this
+    on the next admin login.
+  - **Still open / for go-live (not build blockers):** final qualification
+    rule is a client decision (the two-track Top-N defaults are
+    placeholders); real certificate artwork is client-pending; the
+    scheduled task stays disabled until an issuance cadence is agreed.
+  - Next: `report_vrblms` (TASKS.md Phase 5) — Phase A of the master plan.
+
+## [2026-09-02] — `local_vrbcert` follow-up: targeted issuance, header nav, admin-page verified, 2 bugs fixed
+**Agent:** Claude Code
+**What:** Admin-side verification of `local_vrbcert` (previous entry) using
+  real admin credentials, plus enhancements the user asked for.
+  - **Targeted issuance.** `issuer::run()` gained a 4th arg
+    `array $scope` (`tracks` = subset of `perbrand`/`overall`,
+    `brandkeys` = limit the per-brand track to specific brand cohort
+    idnumbers, `topn` = per-run Top-N override). `normalise_scope()`
+    sanitises it; `collect_qualifiers()` honours it. Default (empty scope)
+    is unchanged — both tracks, all brands, per-track settings N. The
+    admin page (`index.php`) "Issue certificates now" form now has a
+    **Scope** select (All enabled tracks / Per-brand every brand /
+    Per-brand <Veeba|Wok Tok|Zyro> only / Overall only) and a **Top N
+    (this run)** field. So "top 5 for Zyro only" = Scope "Per-brand - Zyro
+    only" + Top N 5 + Run issuance. The result notification echoes the
+    scope used. `\local_vrblms\api` consumption is unchanged - scope only
+    decides which `api::get_leaderboard(...)` / `get_overall_leaderboard()`
+    calls are made and with what `$limit`; rows are still taken verbatim.
+  - **Header nav.** New `db/hooks.php` +
+    `classes/hook_callbacks.php::extend_primary_navigation` on
+    `\core\hook\navigation\primary_extend` (same mechanism
+    `local_vrblms` uses for "Leaderboard"). Adds a **"My certificates"**
+    item to the top header bar, **but only for a user who already holds
+    at least one certificate** (`$DB->record_exists('local_vrbcert_issued',
+    ['userid' => ...])`) - the header slot stays clean until there's
+    something to see. The nav-drawer link
+    (`local_vrbcert_extend_navigation` in `lib.php`) is unchanged and
+    **always** shown to any logged-in non-guest with `local/vrbcert:viewown`.
+  - `version.php` 2026090200 -> 2026090201 (needed for `db/hooks.php` to
+    be picked up).
+**Files touched:** `public/local/vrbcert/classes/issuer.php` (scope),
+  `public/local/vrbcert/index.php` (scope form + 2 bug fixes below),
+  `public/local/vrbcert/lang/en/local_vrbcert.php` (`issuedlist` +
+  scope/topn strings), `public/local/vrbcert/db/hooks.php` (new),
+  `public/local/vrbcert/classes/hook_callbacks.php` (new),
+  `public/local/vrbcert/version.php`. Database: `local_vrbcert` re-upgraded
+  (hook registered). Issued a real `period = 2026` set of 19 certificates
+  (kept, for exploration); a `DEMO` period Zyro-top-5 set was created
+  during the browser test and then deleted.
+**Verification done:**
+  - `php -l` clean; `admin/cli/upgrade.php --non-interactive` ->
+    `local_vrbcert ++ Success ++`.
+  - Re-ran the CLI verification script (`vrbcert_verify.php`) after the
+    `issuer::run()` signature change: **14/14 still pass** (no regression).
+    Added targeted-scope checks: `['tracks'=>['perbrand'],
+    'brandkeys'=>['brand_zyro'],'topn'=>5]` -> 5 rows, all `brand_zyro`;
+    `['tracks'=>['overall'],'topn'=>3]` -> 3 rows, all `overall`; empty
+    scope -> full 19.
+  - **Browser, logged in as the real admin:** management page renders
+    under Site admin -> Reports -> "VRB certificates"; config summary
+    correct; **Preview** button opens the sample PDF inline (VRB LMS
+    wordmark, red "VEEBA" band, title, name, body lines, signatory + date
+    - looks right); issued list shows all 19 with per-row Download +
+    Revoke; the **Brand/track filter** narrows correctly (Zyro -> exactly
+    the 3 Zyro rows); the new **Scope** dropdown has the 6 expected
+    options; submitting **Scope "Per-brand - Zyro only" + Top N 5 + period
+    DEMO** issued exactly 5 Zyro certs and the notification read
+    *"5 issued ... Scope - tracks: perbrand; brands: brand_zyro; top 5"*.
+  - Employee side (previous entry) already verified as Kavita Yadav:
+    "My certificates" page + own download + cross-user denial + admin-page
+    access denied.
+**Gotchas for future agents:**
+  - **`html_writer::tag('button', ..., ['disabled' => $x ? 'disabled' :
+    null])` renders `disabled=""` when `$x` is false in this Moodle
+    version** — `null` is stringified, not dropped, so the button is
+    ALWAYS disabled and the form silently never submits. Fixed by only
+    adding the `disabled` key to the attributes array when actually
+    disabling. Watch for this pattern anywhere else (`readonly`,
+    `checked`, `selected` too).
+  - The `[[issuedlist]]` placeholder on the admin page was a missing lang
+    string (`get_string('issuedlist', ...)` had no key) - added. If you
+    see `[[somestring]]` rendered literally, it's a missing key in
+    `lang/en/local_vrbcert.php`, not a code bug.
+  - `mcp__claude-in-chrome` `computer` clicks by `ref_*` on the submit
+    button did nothing here; clicking by coordinate worked. If a form
+    won't submit under automation, fall back to a coordinate click on the
+    button before assuming a server-side problem.
+  - The header "My certificates" link is **conditional on the user
+    holding >=1 issued certificate**; the drawer link is unconditional.
+    If someone reports "I was told I have a certificate but there's no
+    menu item", check (a) issuance actually ran for them, (b) they're
+    looking at the header vs the drawer.
+  - There is **no notification / email** sent to an employee when a
+    certificate is issued - by design for now (placeholder `@noemail`
+    domain can't receive mail anyway). If the client wants employees
+    pinged, add a `message`/notification provider (small) - flagged, not
+    built.
