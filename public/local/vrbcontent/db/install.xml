@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/vrbcontent/db" VERSION="20260905" COMMENT="Tables for local_vrbcontent (Book/Quiz content importer): reusable field templates and per-import tracking for safe re-import."
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="local_vrbcontent_template" COMMENT="A reusable, admin-named Book field template (e.g. 'Veeba Product').">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Admin-typed template name, reusable across courses/brands."/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="usermodified" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="name" UNIQUE="true" FIELDS="name"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_vrbcontent_template_field" COMMENT="One ordered field mapping within a template: source CSV column label -> field key, with exactly one is_title=1 per template.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="templateid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key reference to local_vrbcontent_template.id."/>
+        <FIELD NAME="label" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Expected CSV header label, matched case-insensitively/trimmed."/>
+        <FIELD NAME="fieldkey" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Internal slug for this field."/>
+        <FIELD NAME="istitle" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 for exactly one field per template - becomes the Book chapter title."/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="templateid" TYPE="foreign" FIELDS="templateid" REFTABLE="local_vrbcontent_template" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="templateid_sortorder" UNIQUE="false" FIELDS="templateid, sortorder"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_vrbcontent_import" COMMENT="One row per completed import batch, for duplicate-detection and safe re-import (replace).">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key reference to course.id."/>
+        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The Book or Quiz course-module this batch targets."/>
+        <FIELD NAME="importtype" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="'book' or 'quiz'."/>
+        <FIELD NAME="contenthash" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="sha256 of the normalized validated rows, for duplicate-import detection."/>
+        <FIELD NAME="rowcount" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="'complete', 'superseded' or 'failed'."/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Admin who ran this import."/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="cmid_status" UNIQUE="false" FIELDS="cmid, status"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_vrbcontent_import_item" COMMENT="One row per Moodle object (Book chapter or question) created by an import batch, so 'Re-import (replace)' deletes exactly what this batch created.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="importid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key reference to local_vrbcontent_import.id."/>
+        <FIELD NAME="itemtype" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="'chapter' or 'question'."/>
+        <FIELD NAME="itemid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="mdl_book_chapters.id or mdl_question.id."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="importid" TYPE="foreign" FIELDS="importid" REFTABLE="local_vrbcontent_import" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="importid_itemtype" UNIQUE="false" FIELDS="importid, itemtype"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

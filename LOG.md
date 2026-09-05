@@ -2714,3 +2714,390 @@ this file and not need the full prior conversation re-explained.
   - The mform section header row has Bootstrap `.mb-2` (`!important`);
     killing the gap under a collapsed section's header needs
     `margin-bottom: 0 !important`, not plain `margin: 0`.
+
+## [2026-09-05] — Employee-UI cleanup: removed Dashboard nav item, My Learning switcher, dark-mode toggle
+
+**What/why:** Three redundant Moove UI elements were still showing in the
+employee-facing header even though "My courses" is the intended
+landing/course-selection page and VRB LMS is intentionally light-only:
+the generic `/my/` "Dashboard" primary-nav link, the graduation-cap "My
+Learning" course-switcher popover, and the sun/moon dark-mode toggle.
+**Files touched:** `public/theme/vrblms/config.php`,
+  `public/theme/vrblms/style/custom.css` (new section 18),
+  `public/theme/vrblms/version.php` (`2026090201` → `2026090202`).
+- **Dashboard removed via core's own mechanism, not CSS**: found
+  `$THEME->removedprimarynavitems` is a real, allow-listed theme config
+  property (`lib/classes/output/theme_config.php:508`, documented in
+  `theme/upgrade.txt`) that `lib/classes/navigation/views/primary.php`
+  checks before ever adding the `'myhome'` (Dashboard) node — set
+  `$THEME->removedprimarynavitems = ['myhome'];` in `config.php`. The
+  `/my/` route/page itself is completely untouched; the node's key
+  (`'myhome'`) is distinct from `'home'` (Site home), which stays.
+- **My Learning + dark mode: CSS-only**, section 18 of `custom.css`.
+  `#nav-mylearning-popover-container` is the id
+  `theme_moove/moove/mylearning.mustache` sets on the *entire*
+  `core/popover_region` wrapper (toggle + popover both inside it), so one
+  `display:none` rule removes the whole widget with no template override.
+  `#toggle-darkmode` is the toggle's own wrapper
+  (`theme_moove/moove/darkmode.mustache`); hid it plus its adjacent
+  sibling `.divider` so no orphaned separator bar is left before the user
+  menu.
+- Considered (and rejected) using theme_moove's own existing
+  `$settings->enabledarkmode` admin setting (`theme_moove/settings.php:481`,
+  already read by `core_renderer::render_darkmode_controls()` to skip
+  rendering entirely) instead of a CSS hide. Rejected because it's a DB
+  config value, not a file — `DEPLOYMENT.md`'s `.cpanel.yml` deploy design
+  only copies specific plugin directories, so a DB-only toggle wouldn't
+  travel with a deploy and would need a separate manual step, easy to
+  forget. CSS in `custom.css` is git-tracked and deploys automatically
+  like every other branding change in this project.
+**Verification done:** `purge_caches.php` + `upgrade.php --non-interactive`
+  (`theme_vrblms ++ Success ++`). Logged in as a real employee
+  (`kavitayadav`): navbar on Home/My courses/Leaderboard/My certificates/
+  course-listing pages shows only Home, My courses, Leaderboard, My
+  certificates — no Dashboard link, no graduation-cap icon, no sun/moon
+  toggle, no orphaned divider. Confirmed My courses (brand tiles),
+  Leaderboard (ranked table), and My certificates (issued PDF list) all
+  still render and function correctly — this only removed navigation
+  chrome, nothing underneath.
+**Gotchas for future agents:** `removedprimarynavitems` only suppresses
+  the *primary* top-nav "Dashboard" link — the user-menu dropdown
+  (top-right avatar) still lists no such entry by default in this theme
+  anyway, so nothing extra was needed there; if a future theme ever adds
+  a Dashboard link to that dropdown too, it isn't covered by this fix.
+
+## [2026-09-05] — `local_vrbcontent` planning: Phase 0 API verification + live qbank-category check
+
+**What/why:** Before writing any code for the planned `local_vrbcontent`
+Excel/CSV → Moodle content importer (`docs/temp docs/
+VRBCONTENT_IMPLEMENTATION_PLAN.md`), verified every Moodle API the plan
+doc assumed against this exact installed 5.1.5 source, per this project's
+standing "verify, don't assume" rule. Full plan written to
+`/Users/adityasinha/.claude/plans/now-based-on-the-sharded-eclipse.md`
+(implementation not yet started — Phase 1 skeleton is next).
+- Confirmed as the plan doc assumed: `quiz_add_quiz_question()`
+  (`mod/quiz/locallib.php:1743`) does not recompute `sumgrades` — must
+  call `\mod_quiz\quiz_settings::create($quizid)->
+  get_grade_calculator()->recompute_quiz_sumgrades()` explicitly (matches
+  the Phase 2 gotcha already logged 2026-08-19); `completionusegrade`/
+  `completionpassgrade`/`completiongradeitemnumber` field names unchanged;
+  `add_moduleinfo()` actually lives at `course/modlib.php:49` (not
+  `course/lib.php`, which only has the thin `create_module()` wrapper at
+  `course/lib.php:2602`); availability JSON is
+  `{"type":"completion","cm":<cmid>,"e":<int>}` wrapped in a
+  `{"op":"&","c":[...],"showc":[...]}` tree
+  (`availability/classes/tree.php`,
+  `availability/condition/completion/classes/condition.php`).
+- **One real correction, found and then verified live in-browser, not
+  just read from source**: question bank categories in this Moodle
+  version are `CONTEXT_MODULE`-only —
+  `question_get_default_category()`/`question_get_top_category()`
+  (`lib/questionlib.php:1084,1130`) both hard-reject any non-module
+  context. There is no course- or category-level question category
+  anymore, which the original plan doc's §2.4 assumed. Correct pattern:
+  get-or-create a `qbank`-type course module via
+  `\core_question\local\bank\question_bank_helper::
+  get_default_open_instance_system_type($course, true)`, then
+  `question_get_top_category($contextid, true)` in *that* module's
+  context, then nest categories under it.
+- **Live check** (throwaway course id 10, "VRB Content QA Test", deleted
+  after use — script never committed, matches this project's scratch-CLI
+  convention): created a qbank module, a `VRB Content` category + a
+  `QA Test Module` child under it, a multichoice question in the child
+  category via `question_bank::get_qtype('multichoice')->
+  save_question()`, attached it to a real quiz via
+  `quiz_add_quiz_question()`, recomputed sumgrades (confirmed `1.00`, not
+  left at `0`). Logged in as real admin, opened the quiz's "Add from
+  question bank" → "Switch bank" → "System shared question bank" (the
+  qbank module just created, distinct from the quiz's own private
+  per-activity bank) → filtered by category "VRB Content" with
+  subcategories → the question appeared and was addable. Confirms the
+  corrected design actually works end-to-end, not just compiles.
+- Also re-read all of `LOG.md` for the plan doc's Phase 2/3 claims:
+  confirmed the sumgrades gotcha and the "no PHPUnit harness" finding
+  (still the most recent statement, nothing later contradicts it) are
+  real; found the plan doc's claim about a `multichoice`-specific PHPUnit
+  generator gotcha doesn't check out — the real logged gotcha
+  (`question/tests/generator/lib.php` needing `test_question_maker`,
+  which requires `PHPUnit\Framework\TestCase`) was about `truefalse`, not
+  `multichoice`, and isn't a blocker either way since the plugin calls
+  `save_question()` directly with hand-built form data.
+**Files touched:** none in the repo (planning + a throwaway CLI script +
+  a disposable test course, both deleted after use).
+**Verification done:** see the live in-browser check above; course id 10
+  and `/tmp/phase0_qbank_check.php` inside the `vrb-moodle` container
+  were both deleted after the check completed.
+**Gotchas for future agents:** hand-building a raw `$quizdata` for
+  `create_module()`/`add_moduleinfo()` (bypassing `mod_quiz`'s own
+  `mod_form.php` defaults) needs every `mdl_quiz` NOT-NULL column that
+  has no schema `DEFAULT` set explicitly — `name`, `intro`/`introeditor`,
+  `preferredbehaviour`, `quizpassword` (→ `password` internally),
+  `subnet`, `browsersecurity` — or the insert fails with a bare "Error
+  writing to database" with no field name in the message. Moodle's own
+  `lib/testing/generator/*` classes are NOT safely usable outside a full
+  PHPUnit bootstrap in this environment (missing
+  `component_generator_base` and other PHPUnit-only dependencies) —
+  don't reach for them in a plain CLI script; build the raw record by
+  hand instead, same as this check did once the missing fields were
+  identified. Also: `create_module()`'s capability checks need a real
+  admin session in CLI context — call
+  `\core\session\manager::set_user(get_admin());` first, or it fails with
+  "Sorry, but you do not currently have permissions to do that."
+
+## [2026-09-05] — `local_vrbcontent` Phase 1: plugin skeleton + parser/validator layer
+
+**What/why:** First real implementation pass on `local_vrbcontent`,
+following the approved plan
+(`/Users/adityasinha/.claude/plans/now-based-on-the-sharded-eclipse.md`).
+Built the plugin skeleton (installable, capability-checked, empty DB
+schema) plus the pure-PHP Parser → Validated Data layer for both Book and
+Quiz imports — no Moodle DB writes yet, no wizard UI yet (that's
+Phase 2/3).
+**Files touched (new plugin, all first commit of this code):**
+  `public/local/vrbcontent/version.php`,
+  `public/local/vrbcontent/db/access.php` (capability
+  `local/vrbcontent:import`, `editingteacher`/`manager` archetypes only —
+  not `user`, per the plan's security posture: this touches course
+  content),
+  `public/local/vrbcontent/db/install.xml` (four tables:
+  `local_vrbcontent_template`, `local_vrbcontent_template_field`,
+  `local_vrbcontent_import`, `local_vrbcontent_import_item` — schema
+  only, no code writes to them yet),
+  `public/local/vrbcontent/lang/en/local_vrbcontent.php`,
+  `public/local/vrbcontent/classes/validated_result.php` (shared
+  rows/errors/warnings/`is_blocked()` value object),
+  `public/local/vrbcontent/classes/csv_reader.php` (shared `fgetcsv()`-based
+  CSV→rows reader — deliberately not a naive line-split, so quoted fields
+  containing commas/newlines parse correctly),
+  `public/local/vrbcontent/classes/book/{template,row_parser,row_validator}.php`,
+  `public/local/vrbcontent/classes/quiz/{quiz_row_parser,quiz_row_validator}.php`.
+**Verification done:**
+  - `core_component::get_plugin_list('local')` confirms `vrbcontent` is
+    detected at the correct `public/local/` path (after
+    `purge_caches.php` — plugin lists are cached, a fresh scan doesn't
+    see a brand-new plugin folder until caches are cleared).
+  - `admin/cli/upgrade.php --non-interactive` → `local_vrbcontent ++
+    Success ++`; confirmed via `$DB->get_manager()->table_exists()` that
+    all four tables exist and via `mdl_capabilities` that
+    `local/vrbcontent:import` was registered.
+  - Scratch CLI script (never committed, deleted after use) exercised
+    every VALID/INVALID/WARNING case the plan's testing section calls
+    for: Book 5-field and 11-field valid sheets, missing required
+    header column (blocked), duplicate template-to-column mapping
+    (blocked), empty title (blocked), "confirm with pricing"/"sold out"
+    placeholder values (warning only, value preserved verbatim in the
+    row output, not rewritten); Quiz 15-question valid sheet, missing
+    question text (blocked), fewer than 2 of A–D populated (blocked),
+    Correct Answer letter not among populated options (blocked),
+    malformed row / wrong column count (blocked), duplicate Q.No
+    (blocked). All 22 checks passed.
+**Gotchas for future agents:** none new — this layer is deliberately pure
+  PHP (no Moodle API surface beyond autoloading), so none of the
+  Phase 0 Moodle-API gotchas apply here. The next phase (Book wizard +
+  `book_provisioner`) is where those start to matter.
+
+## [2026-09-05] — `local_vrbcontent` Phase 2: Book wizard + provisioner + duplicate/re-import safety (Phase 4 folded in)
+
+**What/why:** Built the full Book import wizard (destination → template →
+upload → preview/confirm) and `book_provisioner`, plus the duplicate/
+re-import safety originally scoped as a separate Phase 4 — folded into
+this pass per the user's explicit decision when the plan was approved.
+Verified end-to-end in the real browser as admin, not just unit-tested.
+**Files touched (new):**
+  `public/local/vrbcontent/classes/book/book_provisioner.php`,
+  `public/local/vrbcontent/classes/import_batch.php`,
+  `public/local/vrbcontent/classes/form/{select_destination_form,template_form,upload_form,confirm_form}.php`,
+  `public/local/vrbcontent/book_import.php` (5-step controller: course →
+  target → template → upload → confirm),
+  `public/local/vrbcontent/{index.php,settings.php}` (Reports-menu
+  landing page, matching `local_vrbcert`'s `admin_externalpage`
+  placement exactly, per the user's decision),
+  `public/local/vrbcontent/lang/en/local_vrbcontent.php` (many new
+  strings). Also extended `classes/book/template.php` with DB
+  persistence (`save()`/`load()`/`get_all_names()` against
+  `local_vrbcontent_template`/`_template_field`, reusable-by-name across
+  courses per the plan's §14 lean).
+**Two real bugs hit and fixed during verification, both now load-bearing
+  facts for any future Moodle-form work in this repo:**
+  1. **`moodleform`'s default action strips the query string.** Passing
+     `null` as a form's constructor `$action` (as most of this project's
+     other admin pages do, since they don't need one) makes
+     `formslib.php` default to `strip_querystring($FULLME)`
+     (`lib/formslib.php:199-201`) — so a multi-step wizard whose steps
+     are distinguished by `?step=X` silently loses that param on every
+     POST, and the controller falls back to its default step every time,
+     making the wizard look "stuck" on the same step with fields reset.
+     **Fix:** always pass the page's own `moodle_url` (including its
+     query string) as the explicit `$action` to any `moodleform` used in
+     a GET-param-driven multi-step flow.
+  2. **`repeat_elements()` is a method of `moodleform` itself, not of
+     `$this->_form` (`MoodleQuickForm`).** Calling
+     `$mform->repeat_elements(...)` (where `$mform = $this->_form`)
+     throws "Call to undefined method MoodleQuickForm::repeat_elements()"
+     — the real method lives at `lib/formslib.php:1167` on the
+     `moodleform` class. **Fix:** call `$this->repeat_elements(...)`
+     from inside `definition()`, not `$mform->repeat_elements(...)`.
+**Verification done (real browser, admin, fresh test course id 11 "VRB
+  Content Phase 2 QA" — kept as a reusable QA fixture for Phase 3, not
+  deleted, since it doesn't collide with the real Veeba/Wok
+  Tok/Zyro data):**
+  - Full 5-step wizard: picked the test course → General section →
+    "Create a new Book activity" named "Veeba Product Knowledge" →
+    defined a new reusable template "Veeba Product" (5 fields via the
+    `repeat_elements` "Add fields" UI, first field = title per the
+    brief's rule, no separate title-selector needed) → uploaded a
+    3-row sample CSV (one row with a "Confirm with pricing team"
+    placeholder, one with a blank Notes cell, one with "Currently sold
+    out") → preview correctly showed the 3 warnings and "3 row(s) ready
+    to import," Confirm button present (not blocked) → confirmed →
+    "Import complete: 3 chapter(s) created," landed on the real
+    `mod/book/view.php`.
+  - Confirmed in the live Book: chapter 1 renders `<h5>` labels +
+    values correctly (SKU/Category/Price/Notes under the title); chapter
+    2 shows "Confirm with pricing team" preserved **verbatim** (not
+    rewritten) and the blank Notes cell rendered as an explicit "—",
+    exactly per the plan's requirement.
+  - **Duplicate/re-import safety, all three paths exercised for real:**
+    re-running the identical CSV against the same Book (selecting it
+    from the now-populated "Book activity" dropdown, reusing the saved
+    "Veeba Product" template from the dropdown) correctly showed "This
+    exact content was already imported on {date}" with the Skip/Replace/
+    Cancel radio (default Skip). Chose **Replace**: confirmed via direct
+    DB query that batch 1 became `status=superseded` with its item rows
+    deleted, batch 2 is `status=complete`, and `book_chapters` still
+    contains exactly 3 rows but with **new** ids (4,5,6, not 1,2,3) —
+    the old chapters were genuinely deleted (via the mirrored
+    `mod_book/delete.php` sequence: tag removal, file-area cleanup,
+    record delete, `chapter_deleted` event, one revision bump) and
+    fresh ones created, not left as duplicates alongside new ones.
+    Re-ran once more and chose **Skip**: redirected with "Import
+    skipped - existing content left as-is," and confirmed via DB query
+    that neither the batch table nor the chapter count changed at all.
+  - `get_all_instances_in_course('book', $course)` confirmed to return
+    objects with a `->coursemodule` field (used directly, matches
+    `lib/datalib.php`'s aliased `cm.id AS coursemodule` — verified by
+    reading the query, not assumed).
+**Gotchas for future agents:** the two bugs above, plus: Moodle's
+  filepicker for a `filepicker` mform element is not a plain
+  `<input type=file>` — clicking the visible "Choose a file..." button
+  opens a "File picker" modal, and the actual native file input (type
+  `file`, labeled "Attachment") lives inside that modal's "Upload a
+  file" tab; you still need to click "Upload this file" inside the
+  modal afterward before the outer form's "Continue" submits anything.
+
+## [2026-09-05] — `local_vrbcontent` Phase 3: Quiz wizard + question-bank provisioner + gating configurator
+
+**What/why:** Built the Quiz import wizard (destination → quiz settings →
+upload → preview/confirm), `question_bank_provisioner` (multichoice
+question creation, filed under the qbank-module-anchored category tree
+verified in Phase 0), and `quiz_configurator` (pass-grade/completion/
+attempts on creation, Restrict Access on an explicitly admin-chosen
+section). Verified end-to-end in the real browser, including the single
+most important functional test in the whole plan: a real employee scoring
+exactly 10/15 vs exactly 11/15 against a 70% pass grade.
+**Files touched (new):**
+  `public/local/vrbcontent/classes/quiz/{quiz_configurator,question_bank_provisioner}.php`,
+  `public/local/vrbcontent/classes/form/quiz_settings_form.php`,
+  `public/local/vrbcontent/quiz_import.php` (5-step controller: course →
+  target → settings → upload → confirm), extended
+  `classes/form/select_destination_form.php` with a `quiztarget` stage,
+  extended `index.php` (Quiz card now links instead of "Coming soon"),
+  many new strings in `lang/en/local_vrbcontent.php`.
+**Deliberate scope boundary (not a limitation to "fix" later):**
+  `quiz_configurator` only ever sets pass-grade/attempts/completion when
+  **creating** a new Quiz activity. Reusing an existing one only attaches
+  questions — never reconfigures it. Reason: `quiz_update_instance()`
+  unconditionally recomputes `reviewattempt`/etc. from virtual
+  form-checkbox fields a programmatic caller has no way to populate from
+  an existing row, so reconfiguring an existing quiz this way would
+  silently reset its review-option display settings. Restrict Access is
+  exempt from this boundary (it only touches the section, not the quiz)
+  and is always applied when requested, new-vs-existing quiz either way.
+**Two real bugs hit and fixed during verification:**
+  1. **Course-level `enablecompletion` gate.** `add_moduleinfo()` accepts
+     completion fields (`completion`, `completionpassgrade`,
+     `completiongradeitemnumber`) on `$moduleinfo` without complaint even
+     when the course itself has completion tracking off
+     (`course.enablecompletion = 0`) — they're silently ignored (`cm`
+     ends up with `completion=0` regardless of what was set). This repo's
+     Phase 2 QA course (id 11) was created without ever enabling course
+     completion, so the first real Quiz-gating test silently produced an
+     unlocked-by-default section. **Fix:** `quiz_configurator::get_or_create_quiz()`
+     now calls `update_course()` to turn on `enablecompletion` first,
+     whenever gating (`$passpercent !== null`) is requested and the
+     course doesn't already have it on.
+  2. **"No gating" sentinel collided with a real section number.** The
+     gating-target select's placeholder option was keyed `0`, which is
+     also section 0's real number ("General") — PHP's `+` array-union
+     silently dropped "General" from the dropdown, replacing it with the
+     sentinel's label. **Fix:** sentinel changed to `-1` (never a real
+     section number), with the `!empty()` truthiness check in the
+     confirm-step logic changed to an explicit `!== -1` comparison (since
+     `0` is a legitimate real section value now, not falsy-equivalent to
+     "no gating").
+**Verification done (real browser, admin + a real employee account,
+  reusing course id 11):**
+  - Full 5-step wizard: created "Module 1 Quiz (Imported)" (new Quiz
+    activity, 70% pass / 3 attempts), gated the next section behind it,
+    uploaded a 15-question sample CSV (topic/question/A-D/correct
+    answer/explanation, all realistic Veeba product-knowledge content) →
+    preview showed "15 row(s) ready to import," no errors/warnings →
+    confirmed → "Import complete: 15 question(s) created." Quiz page
+    showed "Attempts allowed: 3," "Grade to pass: 70.00 out of 100.00"
+    (both from the settings step, not hardcoded).
+  - Confirmed via DB: `quiz.sumgrades = 15.00` (not 0 — sumgrades
+    recompute chain worked), `cm.completion=2` (`COMPLETION_TRACKING_AUTOMATIC`),
+    `completionpassgrade=1`, `completiongradeitemnumber='0'`,
+    `grade_item.gradepass=70.00000`. Question category tree confirmed:
+    `VRB Content` (parent = qbank module's top category) →
+    `Module 1` (15 questions inside), both under the qbank module's own
+    `CONTEXT_MODULE` context — exactly the Phase 0-verified design.
+  - **The critical 70%/15-question boundary test, done for real**: created
+    a throwaway `enrol_manual` enrolment for the existing test employee
+    `kavitayadav` into course 11, logged in as that real employee (not
+    admin, not simulated), attempted the quiz scoring **exactly 10/15**
+    (66.67%) → `quiz_grades.grade = 66.66667`, completion state stayed
+    incomplete (more attempts remained), **and the gated section stayed
+    visibly locked** ("Not available unless: The activity Module 1 Quiz
+    (Imported) is complete and passed"). Re-attempted scoring **exactly
+    11/15** (73.33%) → "✓ Done: Receive a passing grade" appeared, and the
+    gated section **unlocked live in the same session**, no fresh login
+    needed — matching `ARCHITECTURE.md`'s Phase 2 finding exactly, now
+    reproduced against real imported content rather than hand-built test
+    modules. Unenrolled `kavitayadav` from the QA course afterward.
+  - **Duplicate/re-import safety**: re-uploading the identical 15-question
+    CSV against the same quiz correctly showed the Skip/Replace/Cancel
+    prompt with the correct prior-import date (same `import_batch`
+    mechanics as Book, already proven in Phase 2). Chose **Replace**
+    against the quiz *after* it already had 2 real learner attempts (from
+    the pass/fail test above) — `mod_quiz\structure::remove_slot()`
+    correctly refused with "You cannot add or remove questions because
+    this quiz has attempts," and this is the **right** behavior, not a
+    bug: replacing questions on a quiz with real attempts would corrupt
+    historical grading data. Confirmed via DB that the refusal left
+    **zero partial state** (batch still `status=complete`, all 15
+    `quiz_slots` intact) — the exception fires before any deletion, and
+    `mark_superseded()` is only reached after a successful delete.
+    Wrapped this in a try/catch redirecting to a clear message
+    (`replaceblockedbyattempts` string) instead of Moodle's raw exception
+    page.
+**Gotchas for future agents:**
+  - `mod_quiz\structure::remove_slot($slotnumber)` takes a **slot
+    number**, not a question id — to find the slot for a specific
+    question id (needed for the replace path), join
+    `quiz_slots.id = question_references.itemid` (component='mod_quiz',
+    questionarea='slot') → `question_bank_entries` → `question_versions.questionid`.
+    No shortcut API for this lookup exists; it's a raw SELECT (read-only,
+    not a mutation) feeding into the real `remove_slot()`/
+    `question_delete_question()` APIs.
+  - `question_delete_question()` only **hides** a question (sets its
+    version status) if it's still "in use" by any quiz — it must be
+    detached from the quiz first (`remove_slot()`) for a genuine delete.
+  - New language strings need a cache purge (`purge_caches.php`) before
+    they resolve — until then they render as literal `[[stringid]]` in
+    the page, which looks like a bug but is just stale string cache.
+  - `component_gradeitems::get_field_name_for_itemnumber()` resolves to
+    the bare `gradepass` field name (no suffix) for `mod_quiz`'s
+    itemnumber-0 grade item — confirmed no `mod_quiz\grades\gradeitems`
+    override class exists in this branch, so `$moduleinfo->gradepass`
+    (not some suffixed variant) is the correct field to set.
