@@ -23,6 +23,12 @@
  *  10. Leaderboard page (local_vrblms)
  *  11. Course page — Topics format brand lift (Phase 5)
  *  12. Quiz view / assessment instructions page (Phase 5)
+ *  13. Site Administration — chrome, settings forms, overview index
+ *  14. Admin data tables (settings summaries, plugin/report lists)
+ *  15. Custom admin pages — VRB certificates manage, admin leaderboard
+ *  16. Hover / interactive-state fixes (global)
+ *  17. Course create / edit / manage screens (mform + management)
+ *  18. Navbar cleanup — hide My Learning switcher + dark mode toggle
  *
  * Phase 5 (course + quiz flow) is a deliberately conservative CSS-only
  * pass — no course-format renderer override, no mod_quiz renderer
@@ -1606,4 +1612,471 @@ body#page-mod-quiz-view .quizstartbuttondiv .btn-primary:focus {
 
 body#page-mod-quiz-view .quizstartbuttondiv .btn-primary:hover {
     filter: brightness(0.92);
+}
+
+/* ============================================================
+   13. SITE ADMINISTRATION  (body.path-admin / .pagelayout-admin)
+   CSS-only brand lift of the core admin area, using the same tokens
+   as the employee UI — Inter, navy accent, flat 1px surfaces, tidy
+   settings rows. No layout files, no renderer overrides (matches the
+   employee-UI "Option A" posture in Agents.md).
+   Already inherited from earlier sections and applies here too:
+   the navy .secondary-navigation tab bar (section 2), flat .card /
+   .block + navy .btn-primary + forced-light colour scheme (section 1),
+   and the .block_settings tree spacing fix (section 9).
+   admin_externalpage_setup() prefixes the pagetype with "admin-", so
+   our own local_vrbcert manage page is body.path-admin too and picks
+   these up; page-specific bits are in section 15.
+   ============================================================ */
+
+/* --- Page + section headings --- */
+body.path-admin #region-main > h2,
+body.path-admin .settingsform > h2,
+body.path-admin #adminsettings h2 {
+    color: var(--vrb-navy);
+    font-weight: 600;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--vrb-border);
+    margin-bottom: 1.25rem;
+}
+
+body.path-admin h3.main,
+body.path-admin #adminsettings h3 {
+    color: var(--vrb-navy);
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin: 2rem 0 0.75rem;
+}
+
+/* Grey descriptive intro block shown under a settings section heading. */
+body.path-admin .box.generalbox.formsettingheading,
+body.path-admin .formsettingheading {
+    background: var(--vrb-surface);
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-card);
+    padding: 0.85rem 1rem;
+    color: var(--vrb-text-2);
+    box-shadow: none;
+}
+
+/* --- Settings form rows (#adminsettings > .settingsform > .form-item.row) --- */
+body.path-admin .settingsform .form-item.row {
+    padding: 1.15rem 0;
+    margin: 0;
+    border-top: 1px solid var(--vrb-border);
+}
+
+body.path-admin .settingsform .form-item.row:first-of-type {
+    border-top: 0;
+}
+
+body.path-admin .form-item .form-label label,
+body.path-admin .form-item .form-label > p {
+    color: var(--vrb-text);
+    font-weight: 600;
+}
+
+body.path-admin .form-item .form-shortname,
+body.path-admin .form-item .form-defaultinfo,
+body.path-admin .form-item .form-text,
+body.path-admin .form-item .form-description,
+body.path-admin .form-item .form-dependenton {
+    color: var(--vrb-text-2) !important;
+}
+
+/* "Save changes" row — a bare .row (not .form-item) that settings.mustache
+   appends after the settings. Separate it from the last setting. */
+body.path-admin .settingsform > .row:not(.form-item) {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--vrb-border);
+}
+
+/* --- Site administration overview (admin/search.php): the tabbed
+   category → links index rendered by core/settings_link_page. --- */
+body.path-admin .nav-tabs {
+    border-bottom: 1px solid var(--vrb-border);
+}
+
+body.path-admin .nav-tabs .nav-link {
+    color: var(--vrb-text-2);
+    border: 0;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+}
+
+body.path-admin .nav-tabs .nav-link:hover {
+    color: var(--vrb-navy);
+    border-bottom-color: var(--vrb-border);
+}
+
+body.path-admin .nav-tabs .nav-link.active {
+    color: var(--vrb-navy);
+    font-weight: 700;
+    background: transparent;
+    border-bottom-color: var(--vrb-navy);
+}
+
+/* The category-label column reserves a full col-sm-3 (25%) even for a
+   two-letter label like "AI", leaving a large gap before its links.
+   Tighten it and give the <hr> row separators the token border colour.
+   Scoped to the visible overview only (the page also renders an
+   off-screen duplicate tree — see LOG.md 2026-08-20). */
+body#page-admin-search .tab-content .row > .col-sm-3 {
+    flex: 0 0 200px;
+    max-width: 200px;
+}
+
+body#page-admin-search .tab-content .row > .col-sm-3 h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--vrb-navy);
+    margin: 0;
+}
+
+body#page-admin-search .tab-content hr {
+    border-top-color: var(--vrb-border);
+    margin: 1.25rem 0;
+}
+
+body#page-admin-search .tab-content .list-unstyled li {
+    padding: 0.15rem 0;
+}
+
+body#page-admin-search .adminpagepath {
+    color: var(--vrb-text-2);
+    font-size: 0.9rem;
+}
+
+/* ============================================================
+   14. ADMIN DATA TABLES
+   The standard Moodle data-table classes (settings summaries, plugin
+   lists, environment/report tables) + our issued-certificates list.
+   Scoped to the admin area + the .vrbcert-issued class so course /
+   gradebook tables elsewhere are untouched.
+   ============================================================ */
+body.path-admin .generaltable,
+body.path-admin table.admintable,
+.vrbcert-issued {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--vrb-card);
+}
+
+body.path-admin .generaltable thead th,
+body.path-admin table.admintable thead th,
+.vrbcert-issued thead th {
+    background: #f3f4f5;
+    color: var(--vrb-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--vrb-border);
+    padding: 0.75rem 1rem;
+}
+
+body.path-admin .generaltable td,
+body.path-admin .generaltable > tbody > tr > th,
+body.path-admin table.admintable td,
+body.path-admin table.admintable > tbody > tr > th,
+.vrbcert-issued td,
+.vrbcert-issued > tbody > tr > th {
+    border-top: 1px solid var(--vrb-border);
+    padding: 0.7rem 1rem;
+    vertical-align: middle;
+}
+
+body.path-admin .generaltable tbody tr:hover,
+.vrbcert-issued tbody tr:hover {
+    background: var(--vrb-surface);
+}
+
+/* ============================================================
+   15. CUSTOM ADMIN PAGES
+   ============================================================ */
+
+/* --- VRB certificates manage page (Site admin ▸ Reports ▸ VRB
+   certificates — local/vrbcert/index.php). --- */
+body#page-admin-local-vrbcert-index .box.generalbox {
+    background: var(--vrb-card);
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-card);
+    padding: 1.25rem 1.5rem;
+    box-shadow: none;
+}
+
+body#page-admin-local-vrbcert-index .box.generalbox h3 {
+    margin-top: 0;
+}
+
+body#page-admin-local-vrbcert-index h3 {
+    color: var(--vrb-navy);
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin: 2rem 0 0.35rem;
+}
+
+body#page-admin-local-vrbcert-index form .form-group {
+    margin-bottom: 1rem;
+    max-width: 32rem;
+}
+
+body#page-admin-local-vrbcert-index form .form-group > label {
+    color: var(--vrb-text);
+    font-weight: 600;
+}
+
+body#page-admin-local-vrbcert-index .form-check-label {
+    color: var(--vrb-text);
+}
+
+body#page-admin-local-vrbcert-index .form-text {
+    color: var(--vrb-text-2) !important;
+}
+
+/* --- Regional leaderboard, admin/manager filter view
+   (local/vrblms/leaderboard.php, "report" pagelayout). The .vrb-lb-*
+   filter card + table are already styled in section 10; this just
+   brands the report-layout page H1 to match. --- */
+body.pagelayout-report #region-main > h1,
+body.pagelayout-report .page-header-headings h1 {
+    color: var(--vrb-navy);
+    font-weight: 700;
+}
+
+/* ============================================================
+   16. HOVER / INTERACTIVE-STATE FIXES  (global)
+   Moove derives several hover states from its blue brandcolor
+   (#0f47ad) via darken($brand-primary, 10%), which paints a mid-blue
+   box that clashes on the navy chrome and is hard to read; and a few
+   token-driven hovers (dropdown item, list-group action, table row)
+   were landing on --vrb-surface (#F8F9FA), too faint to register as
+   feedback. Normalise everything to one legible navy-tint / white-tint
+   system.
+   ============================================================ */
+
+/* Token-level: the hover backgrounds Bootstrap resolves from CSS vars. */
+:root,
+[data-bs-theme="dark"],
+body[data-bs-theme="dark"] {
+    --bs-dropdown-link-hover-bg: rgba(0, 11, 67, 0.07);
+    --bs-list-group-action-hover-bg: rgba(0, 11, 67, 0.06);
+    --bs-nav-link-hover-color: var(--vrb-navy);
+}
+
+/* Content links: navy → navy-hover is imperceptible — underline instead.
+   Scoped to main content; chrome links manage their own state. */
+#region-main a:not(.btn):not(.nav-link):not(.dropdown-item):not(.list-group-item):not(.page-link):not(.aalink):not(.badge):hover {
+    text-decoration: underline;
+}
+
+/* Dropdown menus (user menu, action menus, More▾) — a tint you can see. */
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus,
+.dropdown-menu .dropdown-item:focus-within {
+    background-color: rgba(0, 11, 67, 0.07);
+    color: var(--vrb-navy);
+}
+
+/* Secondary navigation (navy bar on course / admin pages) — Moove paints
+   hover/active a mid-blue box; use a subtle white tint, white text, and a
+   white underline for the active tab. */
+.secondary-navigation .nav-link:hover,
+.secondary-navigation .nav-link:focus,
+.secondary-navigation .nav-tabs .nav-link:hover,
+.secondary-navigation .nav-tabs .nav-link:focus,
+.secondary-navigation .moremenu .nav-tabs .nav-link:hover,
+.secondary-navigation .moremenu .nav-tabs .nav-link:focus {
+    background-color: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+}
+
+.secondary-navigation .nav-link.active,
+.secondary-navigation .nav-tabs .nav-link.active,
+.secondary-navigation .moremenu .nav-tabs .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.10);
+    color: #ffffff;
+    border-bottom: 2px solid #ffffff;
+}
+
+/* Primary (top) navigation — keep the light hover box, pin text navy so
+   it never rides on an inherited white colour. */
+.primary-navigation .nav-link:hover,
+.primary-navigation .nav-link:focus,
+.moremenu .nav-link:hover,
+.moremenu .nav-link:focus {
+    background-color: var(--vrb-surface);
+    color: var(--vrb-navy);
+}
+
+/* List-group action rows (course/category management, some admin lists). */
+.list-group-item-action:hover,
+.list-group-item-action:focus {
+    background-color: rgba(0, 11, 67, 0.06);
+    color: var(--vrb-text);
+}
+
+/* Admin data-table row hover (section 14) + our issued-cert list —
+   lift the tint so it actually reads. */
+body.path-admin .generaltable tbody tr:hover,
+body.path-admin table.admintable tbody tr:hover,
+.vrbcert-issued tbody tr:hover {
+    background-color: rgba(0, 11, 67, 0.045);
+}
+
+/* Primary button — deepen the hover step (navy → near-black-navy). */
+.btn-primary:hover,
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-primary:not(:disabled):not(.disabled).active {
+    background-color: #00061F;
+    border-color: #00061F;
+}
+
+/* ============================================================
+   17. COURSE CREATE / EDIT / MANAGE SCREENS
+   Brand lift of the mform-based course settings / category / activity
+   edit forms (course/edit.php, course/editcategory.php,
+   course/modedit.php) and the course & category management screen
+   (course/management.php). CSS-only — Moodle's mform markup is kept.
+   mform structure (verified 5.1.5): form.mform > fieldset.clearfix.
+   fitem.collapsible[.collapsed] , each with a hidden <legend>, a
+   .d-flex header row holding .ftoggler (>a.fheader chevron + <h3>),
+   and a .fcontainer holding the .fitem.row field rows.
+   ============================================================ */
+
+/* --- Each collapsible section → a flat card --- */
+body#page-course-edit .mform > fieldset.collapsible,
+body#page-course-editcategory .mform > fieldset.collapsible,
+body#page-course-modedit .mform > fieldset.collapsible {
+    background: var(--vrb-card);
+    border: 1px solid var(--vrb-border);
+    border-bottom: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-card);
+    margin-bottom: 1.25rem;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: none;
+}
+
+/* Section header bar (the .d-flex row that carries the chevron + <h3>). */
+body#page-course-edit .mform > fieldset.collapsible > .d-flex,
+body#page-course-editcategory .mform > fieldset.collapsible > .d-flex,
+body#page-course-modedit .mform > fieldset.collapsible > .d-flex {
+    margin-bottom: 0 !important;
+    padding: 0.85rem 1.25rem;
+    background: var(--vrb-surface);
+}
+
+body#page-course-edit .mform > fieldset.collapsible:not(.collapsed) > .d-flex,
+body#page-course-editcategory .mform > fieldset.collapsible:not(.collapsed) > .d-flex,
+body#page-course-modedit .mform > fieldset.collapsible:not(.collapsed) > .d-flex {
+    background: var(--vrb-card);
+    border-bottom: 1px solid var(--vrb-border);
+}
+
+body#page-course-edit .mform > fieldset.collapsible .ftoggler h3,
+body#page-course-editcategory .mform > fieldset.collapsible .ftoggler h3,
+body#page-course-modedit .mform > fieldset.collapsible .ftoggler h3 {
+    color: var(--vrb-navy);
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+/* Field-container padding + row rhythm. */
+body#page-course-edit .mform > fieldset.collapsible > .fcontainer,
+body#page-course-editcategory .mform > fieldset.collapsible > .fcontainer,
+body#page-course-modedit .mform > fieldset.collapsible > .fcontainer {
+    padding: 1.25rem;
+}
+
+body#page-course-edit .mform .fcontainer > .fitem,
+body#page-course-editcategory .mform .fcontainer > .fitem,
+body#page-course-modedit .mform .fcontainer > .fitem {
+    margin-bottom: 0;
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--vrb-border);
+}
+
+body#page-course-edit .mform .fcontainer > .fitem:first-child,
+body#page-course-editcategory .mform .fcontainer > .fitem:first-child,
+body#page-course-modedit .mform .fcontainer > .fitem:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+body#page-course-edit .mform .fitem .col-form-label label,
+body#page-course-editcategory .mform .fitem .col-form-label label,
+body#page-course-modedit .mform .fitem .col-form-label label {
+    color: var(--vrb-text);
+    font-weight: 500;
+}
+
+body#page-course-edit .mform .felement .form-text,
+body#page-course-editcategory .mform .felement .form-text,
+body#page-course-modedit .mform .felement .form-text {
+    color: var(--vrb-text-2) !important;
+}
+
+/* "Expand all / Collapse all" utility toggle. */
+body#page-course-edit .collapsible-actions .collapseexpand,
+body#page-course-editcategory .collapsible-actions .collapseexpand,
+body#page-course-modedit .collapsible-actions .collapseexpand {
+    color: var(--vrb-navy);
+    font-weight: 500;
+}
+
+/* Bottom action row (Save / Cancel) — space it off the last card. */
+body#page-course-edit #fgroup_id_buttonar,
+body#page-course-editcategory #fgroup_id_buttonar,
+body#page-course-modedit #fgroup_id_buttonar {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+}
+
+/* --- Course & category management screen (course/management.php) --- */
+body.path-course-management .card-header,
+body#page-course-management .card-header {
+    background: var(--vrb-surface);
+    color: var(--vrb-navy);
+    font-weight: 600;
+    border-bottom: 1px solid var(--vrb-border);
+}
+
+body.path-course-management .listitem.selected,
+body#page-course-management .listitem.selected {
+    background: rgba(0, 11, 67, 0.05);
+    border-left-color: var(--vrb-navy);
+    box-shadow: inset 3px 0 0 var(--vrb-navy);
+}
+
+body.path-course-management .course-listing .coursename a,
+body.path-course-management .category-listing .categoryname a {
+    color: var(--vrb-navy);
+}
+
+/* ============================================================
+   18. NAVBAR CLEANUP — hide My Learning switcher + dark mode toggle
+   ============================================================ */
+
+/* "My Learning" graduation-cap course-switcher popover
+   (theme_moove/moove/mylearning) — "My courses" is the intended
+   employee course-selection page, this is a redundant duplicate.
+   #nav-mylearning-popover-container is the id theme_moove's template
+   sets on the entire core/popover_region wrapper (toggle + popover
+   both live inside it), so hiding it removes both in one rule.
+   CSS-only, no template override: the widget (and My Learning's
+   underlying course data) is untouched, just not rendered. */
+#nav-mylearning-popover-container {
+    display: none !important;
+}
+
+/* Light/dark mode toggle (theme_moove/moove/darkmode) — VRB LMS is
+   intentionally light-only (see section 0/1's forced-light-palette
+   rules). #toggle-darkmode is the toggle's own wrapper; its adjacent
+   sibling is Moove's navbar divider, which would otherwise leave a
+   orphaned "|" separator with nothing to its left. */
+#toggle-darkmode,
+#toggle-darkmode + .divider {
+    display: none !important;
 }

@@ -2544,3 +2544,173 @@ this file and not need the full prior conversation re-explained.
     domain can't receive mail anyway). If the client wants employees
     pinged, add a `message`/notification provider (small) - flagged, not
     built.
+
+## [2026-09-02] — Admin-side brand lift: same token system applied to Site Administration (CSS-only)
+**Agent:** Claude Code
+**What:** Extended the employee-UI design-match to the admin area, at the
+  user's request ("apply same kind of changes — same colours and designs —
+  to admin side"), scope confirmed with the user as **both** core Site
+  Administration chrome **and** our two custom admin/report pages, depth
+  **CSS-only** (same "Option A" posture as the employee UI — no layout
+  files, no renderer overrides). All in `theme_vrblms/style/custom.css`,
+  three new numbered sections:
+  - **13. Site Administration** (`body.path-admin` / `.pagelayout-admin`):
+    page/section headings (`#region-main > h2`, `#adminsettings h2/h3`,
+    `h3.main`) → navy 600 + a 1px rule under the page `h2`; the grey
+    `.box.generalbox.formsettingheading` intro block → flat surface card;
+    `#adminsettings .settingsform .form-item.row` → 1px `--vrb-border`
+    row separators + `--vrb-text` bold labels + `--vrb-text-2` on
+    shortname/default/description/dependenton; the trailing bare
+    `.settingsform > .row:not(.form-item)` "Save changes" row → top
+    border + spacing. Site-admin **overview index** (`admin/search.php`,
+    rendered by `core/settings_link_page`): `.nav-tabs` → underline-style
+    tabs, active tab navy text + navy bottom border; the category-label
+    column (`#page-admin-search .tab-content .row > .col-sm-3`, a full
+    25% even for a 2-letter label) tightened to `flex:0 0 200px`, `<hr>`
+    separators recoloured to the token border. (This is a lighter
+    re-take of the `#page-admin-search` rules that were added then
+    reverted on 2026-08-20 when the user redirected that session to the
+    employee quiz flow — now explicitly in scope.)
+  - **14. Admin data tables** (`body.path-admin .generaltable`,
+    `table.admintable`, `.vrbcert-issued`): grey `#f3f4f5` header row,
+    uppercase muted `th`, 1px `--vrb-border` row lines, `--vrb-surface`
+    hover. Deliberately **not** applied to course/gradebook tables or the
+    role-capability matrix — scoped to the admin area + the one custom
+    table class.
+  - **15. Custom admin pages:** `body#page-admin-local-vrbcert-index`
+    (the `local_vrbcert` manage page — `admin_externalpage_setup()`
+    prefixes the pagetype with `admin-`, so its body id is
+    `page-admin-local-vrbcert-index` and it is `body.path-admin`, picking
+    up sections 13/14 for free): `.box.generalbox` → flat card, `h3`
+    spacing/navy, `.form-group` max-width + bold labels. And a one-liner
+    braning the `report` pagelayout page `h1` navy so the admin/manager
+    **leaderboard filter view** matches (its `.vrb-lb-*` filter card +
+    table were already styled in section 10).
+  - Header comment section index updated (13/14/15 added).
+  - `version.php` `2026083004` → `2026090200`.
+**Files touched:** `public/theme/vrblms/style/custom.css` (sections 13,
+  14, 15 appended + section-index comment), `public/theme/vrblms/version.php`.
+**Verification done:** `admin/cli/upgrade.php --non-interactive` →
+  `theme_vrblms ++ Success ++`; `purge_caches.php`. Confirmed the new
+  rules are present in the served combined stylesheet
+  (`grep page-admin-local-vrbcert-index` on
+  `theme/styles.php/vrblms/<rev>/all` → hit). **Not yet visually verified
+  in-browser** — the only live browser session available this pass was
+  logged in as an employee (Kavita Yadav), and every `/admin/*` URL
+  correctly returns "Access denied" for her. Needs an admin login for the
+  screenshot pass (same outstanding gap noted for the Phase 4 admin
+  leaderboard-filter view and the `local_vrbcert` admin-page UI in the
+  entries above — all three want the same next admin session).
+**Gotchas for future agents:**
+  - `admin/search.php` renders its category tree **twice** — once
+    visible, once positioned off-screen (`left ≈ 1900` on a ~1512px
+    viewport), per LOG 2026-08-20. The section-13 tighten rule is scoped
+    to `#page-admin-search .tab-content .row > .col-sm-3` which hits both
+    copies; harmless (the duplicate is off-screen) but don't be surprised
+    if a JS `getBoundingClientRect` check finds two matches.
+  - Section 14's `border-collapse: collapse` on `.generaltable` /
+    `table.admintable` is intentional but broad within the admin area —
+    if some specific admin table (role assignment, capability matrix)
+    looks wrong after this, scope that table out rather than dropping the
+    rule.
+  - The navy `.secondary-navigation` bar (section 2) and flat `.card` /
+    `.block` + navy `.btn-primary` + forced-light scheme (section 1)
+    already applied on admin pages before this pass — sections 13-15 only
+    add what those didn't reach (settings-form rows, the overview index,
+    data tables, the two custom pages).
+
+## [2026-09-02] — Admin follow-up: course create/edit/manage screens + sitewide hover-state fixes (verified as admin)
+**Agent:** Claude Code
+**What:** Same session, user follow-up: (a) focus the admin brand lift on
+  the course **creation / editing** screens, (b) fix hover colours that
+  were "messed up / not visible". User supplied admin credentials; per the
+  standing safety rule Claude did not type them — the user logged the
+  browser in and Claude drove verification from that authenticated
+  session. Two new CSS sections in `theme_vrblms/style/custom.css`:
+  - **16. Hover / interactive-state fixes (global).** Root cause: Moove
+    derives several hover states from its blue `brandcolor` `#0f47ad` via
+    `darken($brand-primary, 10%)` → a mid-blue box (`rgb(11,52,126)`) that
+    clashes badly on the navy chrome; and the token-driven hovers
+    (`--bs-dropdown-link-hover-bg`, `--bs-list-group-action-hover-bg`) plus
+    section 14's new table-row hover were all landing on `--vrb-surface`
+    `#F8F9FA`, too faint to read. Fixes: bumped those two `--bs-*` hover
+    tokens to `rgba(0,11,67,.06–.07)`; explicit visible tints for
+    `.dropdown-menu .dropdown-item:hover`, `.list-group-item-action:hover`,
+    admin table rows; **secondary-navigation** (navy bar) hover/active →
+    `rgba(255,255,255,.14/.10)` white tint + white underline on active
+    (had to include `.secondary-navigation .moremenu .nav-tabs .nav-link`
+    in the selector — Moove's rule is 0,0,4,1 and beat a shorter one);
+    primary-nav hover pinned to `--vrb-surface` bg + navy text; content
+    links in `#region-main` get `text-decoration: underline` on hover
+    (navy→navy-hover was imperceptible); `.btn-primary:hover` deepened to
+    `#00061F`.
+  - **17. Course create / edit / manage screens.** Scoped to
+    `body#page-course-edit`, `#page-course-editcategory`,
+    `#page-course-modedit` (all `pagelayout-admin` + `path-course`, NOT
+    `path-admin`, so sections 13–14 don't reach them). Each mform
+    collapsible `fieldset.collapsible` → a flat card (1px `--vrb-border`,
+    8px radius, `margin-bottom:1.25rem`, `overflow:hidden`); the `.d-flex`
+    header row (chevron `a.fheader` + `<h3>`) → a `--vrb-surface` header
+    bar (`margin-bottom:0 !important` to beat Bootstrap `.mb-2`), white +
+    bottom-border when expanded; `.ftoggler h3` navy 600; `.fcontainer`
+    padded 1.25rem; `.fcontainer > .fitem` rows get 1px top-border
+    separators + tighter padding; `.col-form-label label` → `--vrb-text`
+    500. Plus `course/management.php` (`path-course-management`):
+    `.card-header` panel titles → `--vrb-surface` + navy 600 + border;
+    `.listitem.selected` → navy tint + `inset 3px 0 0 var(--vrb-navy)`;
+    category/course name links navy. mform markup confirmed against the
+    live DOM (5.1.5): `form.mform > fieldset.clearfix.fitem.collapsible
+    [.collapsed]`, hidden `<legend>`, `.d-flex.align-items-center.mb-2`
+    header, `.fcontainer.collapseable.collapse[.show]`.
+  - `version.php` `2026090200` → `2026090201`.
+**Files touched:** `public/theme/vrblms/style/custom.css` (sections 16, 17
+  + section-index comment), `public/theme/vrblms/version.php`.
+**Verification done:** `admin/cli/upgrade.php --non-interactive` →
+  `theme_vrblms ++ Success ++`; `purge_caches.php` per change. **Browser,
+  logged in as the real admin:**
+  - `course/edit.php` ("Add a new course"): every section
+    (General expanded, Appearance / Files and uploads / Completion
+    tracking / Groups / Tags collapsed) renders as a flat card with a
+    `--vrb-surface` header bar, navy chevron + navy `<h3>` (`getComputedStyle`
+    → `rgb(0,11,67)` / weight 600), field rows with hairline separators;
+    `.fcontainer` `display:none` when collapsed (no trailing gap after the
+    `mb-2` fix); "Save and display" navy, "Cancel" grey.
+  - `course/management.php`: panel headers ("Course categories" /
+    "Category 1") now `--vrb-surface` + navy; category-row hover shows a
+    clearly visible `rgba(0,11,67,.06)` tint (was near-invisible);
+    "Category 1" selected row has the navy left bar + tint.
+  - Secondary navy nav bar (`course/management.php`, `admin/search.php`,
+    `admin/settings.php`): hovering a tab now shows a subtle translucent
+    white box instead of the clashing dark-blue one; active tab has a
+    white underline.
+  - `admin/settings.php?section=optionalsubsystems` ("Advanced features"):
+    `h2` navy + bottom rule, `.form-item.row` rows separated by 1px
+    borders, bold `--vrb-text` labels, muted shortname/description.
+  - `admin/search.php`: nav-tabs underline style, "General" active tab
+    underlined, category-label column tightened to 200px.
+  - `local/vrbcert/index.php`: "Current configuration" is a flat bordered
+    card, "Issue certificates now" h3 navy, issued table (`.vrbcert-issued`)
+    has the grey header treatment + hairline rows + row hover.
+  - User-menu dropdown: "Private files" hover now a visible
+    `rgba(0,11,67,.07)` navy tint + navy text (was `#F8F9FA`, imperceptible).
+**Gotchas for future agents:**
+  - Moove's blue `brandcolor` is `#0f47ad`; anything it styles as
+    `darken($brand-primary, 10%)` renders `rgb(11,52,126)`. If a new
+    clashing-blue hover box shows up somewhere on the navy chrome, that's
+    the source — override it with a white-tint rule at matching-or-higher
+    specificity (Moove's secondary-nav rule is
+    `.secondary-navigation .moremenu .nav-tabs .nav-link:hover`, 0,0,4,1).
+  - The course settings form is `body#page-course-edit` +
+    `pagelayout-admin` + `path-course` — it does **not** carry
+    `body.path-admin`, so the section 13/14 admin rules skip it by design;
+    section 17 targets it by page id instead. `course/editcategory.php`
+    (`#page-course-editcategory`) and `course/modedit.php`
+    (`#page-course-modedit`, activity add/edit) are covered by the same
+    section-17 selectors — the mform card treatment applies to activity
+    editing too, not just course settings.
+  - `fieldset.collapsible` also carries the class `fitem` in mform — scope
+    field-row rules to `.fcontainer > .fitem`, not bare `.mform .fitem`,
+    or the fieldset itself gets row padding/borders.
+  - The mform section header row has Bootstrap `.mb-2` (`!important`);
+    killing the gap under a collapsed section's header needs
+    `margin-bottom: 0 !important`, not plain `margin: 0`.
