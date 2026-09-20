@@ -31,6 +31,7 @@
  *  18. Navbar cleanup — hide My Learning switcher + dark mode toggle
  *  19. Book activity (mod_book) — table of contents + chapter content
  *  20. Site administration overview — card grid + popups
+ *  21. Course management + child screens — refreshed admin chrome
  *
  * Phase 5 (course + quiz flow) is a deliberately conservative CSS-only
  * pass — no course-format renderer override, no mod_quiz renderer
@@ -2528,3 +2529,389 @@ body#page-admin-search .vrb-am.tab-content {
 .vrb-am-icon[data-key="reportbuilder"]::before { content: "\f0ce"; }
 .vrb-am-icon[data-key="toolmfareports"]::before { content: "\f577"; }
 .vrb-am-icon[data-key="experimental"]::before { content: "\f0c3"; }
+
+/* ============================================================
+   21. COURSE MANAGEMENT + CHILD SCREENS — refreshed admin chrome
+   Covers: course/management.php (categories / courses / course detail),
+   course/edit.php (create + edit course), course/editcategory.php,
+   course/delete.php + deletecategory.php (confirmations),
+   enrol/instances.php + enrol/editinstance.php.
+   CSS only — no markup or behaviour changes. Builds on section 17
+   (collapsible form cards) and section 14 (data tables): flat white
+   cards on the grey ground, quiet headers, white inputs with a navy
+   focus ring, outlined secondary buttons, navy primary actions, red
+   destructive actions.
+   ============================================================ */
+
+/* --- Page ground: management + course edit sit directly on the grey
+   page (cards carry their own surface), like the admin overview. --- */
+:is(body#page-course-management, body#page-course-edit) #topofscroll,
+body#page-course-management #region-main {
+    background: transparent;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) #region-main h2 {
+    color: var(--vrb-navy);
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+}
+
+/* --- Controls --- */
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) .form-control,
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) .form-select,
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) .custom-select {
+    min-height: 2.375rem;
+    background-color: var(--vrb-card);
+    border: 1px solid #D0D5DD;
+    border-radius: 6px;
+    color: var(--vrb-text);
+}
+
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) .form-control:focus,
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) .form-select:focus,
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) .custom-select:focus {
+    border-color: var(--vrb-navy);
+    box-shadow: 0 0 0 3px rgba(0, 11, 67, 0.12);
+    outline: 0;
+}
+
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) .form-control:disabled,
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) .form-select:disabled {
+    background-color: var(--vrb-surface);
+}
+
+/* --- Buttons: secondary = white outline; the "Create new ..." button in a
+   listing is the page's primary action, so it goes navy; delete = red. --- */
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) .btn-secondary {
+    background: var(--vrb-card);
+    border: 1px solid #C9CED6;
+    color: var(--vrb-navy);
+    font-weight: 500;
+    box-shadow: none;
+}
+
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) .btn-secondary:hover,
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) .btn-secondary:focus-visible {
+    background: rgba(0, 11, 67, 0.06);
+    border-color: var(--vrb-navy);
+    color: var(--vrb-navy);
+}
+
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) :is(.category-listing-actions, .course-listing-actions) .btn-secondary {
+    background: var(--vrb-navy);
+    border-color: var(--vrb-navy);
+    color: var(--vrb-on-navy);
+}
+
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) :is(.category-listing-actions, .course-listing-actions) .btn-secondary:hover,
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) :is(.category-listing-actions, .course-listing-actions) .btn-secondary:focus-visible {
+    background: var(--vrb-navy-hover);
+    border-color: var(--vrb-navy-hover);
+    color: var(--vrb-on-navy);
+}
+
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) a.btn-secondary[href*="/course/delete.php"],
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) a.btn-secondary[href*="/course/deletecategory.php"] {
+    color: var(--vrb-error);
+    border-color: rgba(186, 26, 26, 0.35);
+}
+
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) a.btn-secondary[href*="/course/delete.php"]:hover,
+:is(body#page-course-management, body#page-course-edit, body#page-course-editcategory, body#page-course-delete, body#page-course-deletecategory, body#page-enrol-instances, body#page-enrol-editinstance) a.btn-secondary[href*="/course/deletecategory.php"]:hover {
+    background: rgba(186, 26, 26, 0.08);
+    border-color: var(--vrb-error);
+    color: var(--vrb-error);
+}
+
+body#page-course-delete .btn-primary,
+body#page-course-deletecategory .btn-primary {
+    background: var(--vrb-error);
+    border-color: var(--vrb-error);
+}
+
+body#page-course-delete .btn-primary:hover,
+body#page-course-deletecategory .btn-primary:hover {
+    background: #93000A;
+    border-color: #93000A;
+}
+
+/* Confirmation dialog card */
+body#page-course-delete .modal-dialog-centered,
+body#page-course-deletecategory .modal-dialog-centered,
+body#page-course-delete .confirmation-dialog,
+body#page-course-deletecategory .confirmation-dialog {
+    border: 1px solid var(--vrb-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 11, 67, 0.08);
+}
+
+/* --- Management: panels --- */
+body#page-course-management .card {
+    background: var(--vrb-card);
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-card);
+    box-shadow: none;
+    overflow: hidden;
+}
+
+body#page-course-management .card-header {
+    padding: 0.9rem 1.25rem;
+    background: var(--vrb-card);
+    color: var(--vrb-navy);
+    font-size: 1.05rem;
+    font-weight: 700;
+    border-bottom: 1px solid var(--vrb-border);
+}
+
+body#page-course-management .card-body {
+    padding: 1rem 1.25rem 1.25rem;
+}
+
+body#page-course-management .listing-actions {
+    margin-bottom: 1rem;
+}
+
+/* --- Management: list rows --- */
+body#page-course-management .list-group-item,
+body#page-course-management li.listitem {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--vrb-border);
+    border-radius: 0;
+    padding: 0.65rem 0.5rem;
+    transition: background-color 0.12s;
+}
+
+body#page-course-management .list-group-item:last-child,
+body#page-course-management li.listitem:last-child {
+    border-bottom: 0;
+}
+
+body#page-course-management .list-group-item:hover,
+body#page-course-management li.listitem:hover {
+    background: var(--vrb-surface);
+}
+
+body#page-course-management li.listitem[data-selected="1"] {
+    background: rgba(0, 11, 67, 0.05);
+    border-left: 0;
+    padding-left: 0.5rem;
+    box-shadow: inset 3px 0 0 var(--vrb-navy);
+}
+
+body#page-course-management .categoryname,
+body#page-course-management .coursename {
+    font-weight: 500;
+}
+
+/* Row action icons -> small square hit targets */
+body#page-course-management .item-actions .action-icon,
+body#page-course-management .item-actions .btn-link,
+body#page-course-management .item-actions .dropdown-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.9rem;
+    height: 1.9rem;
+    padding: 0;
+    border-radius: 6px;
+    color: var(--vrb-text-2);
+    transition: background-color 0.12s, color 0.12s;
+}
+
+body#page-course-management .item-actions .action-icon:hover,
+body#page-course-management .item-actions .btn-link:hover,
+body#page-course-management .item-actions .dropdown-toggle:hover {
+    background: rgba(0, 11, 67, 0.08);
+    color: var(--vrb-navy);
+}
+
+body#page-course-management .item-actions .icon {
+    margin: 0;
+}
+
+/* Course-count pill next to a category */
+body#page-course-management .course-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.1rem 0.55rem;
+    background: var(--vrb-surface);
+    border: 1px solid var(--vrb-border);
+    border-radius: 999px;
+    color: var(--vrb-text-2);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+body#page-course-management .course-count .icon {
+    margin: 0;
+    font-size: 0.8em;
+}
+
+/* Bulk actions ("Sorting", "Move selected ... to") */
+body#page-course-management .listing-actions.mt-3,
+body#page-course-management .bulk-action-menu,
+body#page-course-management .card-body > .row {
+    margin-top: 1rem;
+}
+
+body#page-course-management .card-body label,
+body#page-course-management .listing-actions label {
+    color: var(--vrb-text-2);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+body#page-course-management .listing-pagination-totals {
+    color: var(--vrb-muted);
+    font-size: 0.82rem;
+    text-align: center;
+}
+
+/* Course detail: label / value pairs */
+body#page-course-management .course-detail .detail-pair,
+body#page-course-management .course-detail dl > .row {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--vrb-border);
+}
+
+body#page-course-management .course-detail .pair-key,
+body#page-course-management .course-detail dt {
+    color: var(--vrb-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* --- Edit course / category forms --- */
+body#page-course-edit .mform .form-label-addon .icon,
+body#page-course-editcategory .mform .form-label-addon .icon {
+    transform: scale(0.9);
+}
+
+/* Category + enrolment-instance forms are plain (non-collapsible): give
+   the form itself the same flat-card treatment section 17 gives the
+   collapsible sections. */
+body#page-course-editcategory #region-main form.mform,
+body#page-enrol-editinstance #region-main form.mform {
+    background: var(--vrb-card);
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-card);
+    padding: 1.25rem 1.5rem;
+}
+
+/* Save / Cancel stay reachable on long forms. */
+body#page-course-edit #fgroup_id_buttonar,
+body#page-course-editcategory #fgroup_id_buttonar,
+body#page-enrol-editinstance #fgroup_id_buttonar {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    margin-top: 1rem;
+    padding: 0.9rem 0;
+    background: var(--vrb-card);
+    border-top: 1px solid var(--vrb-border);
+}
+
+/* --- Enrolment methods table --- */
+body#page-enrol-instances .generaltable {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--vrb-card);
+}
+
+body#page-enrol-instances .generaltable thead th {
+    background: #f3f4f5;
+    color: var(--vrb-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--vrb-border);
+    padding: 0.75rem 1rem;
+}
+
+body#page-enrol-instances .generaltable td {
+    border-top: 1px solid var(--vrb-border);
+    padding: 0.7rem 1rem;
+    vertical-align: middle;
+}
+
+body#page-enrol-instances .generaltable tbody tr:hover {
+    background: var(--vrb-surface);
+}
+
+/* --- Section 21 refinements --- */
+
+/* Tighten the gap between the page title and the content. */
+:is(body#page-course-management, body#page-course-edit) #topofscroll {
+    padding-top: 0;
+}
+
+body#page-course-management #region-main {
+    padding-top: 0;
+}
+
+/* The selected row keeps its accent bar as an inset shadow only — Moodle's
+   6px blue left border pushed its content out of line with other rows. */
+/* (Moodle marks the selected row with [data-selected="1"], not a class.) */
+
+body#page-course-management .item-actions .menubar {
+    gap: 2px;
+}
+
+/* Bulk actions (sorting / move selected): a tinted footer box with each
+   label stacked above its control, instead of a cramped two-column form. */
+body#page-course-management .bulk-actions {
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    background: var(--vrb-surface);
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-card);
+}
+
+body#page-course-management .bulk-actions .detail-pair {
+    display: block;
+    margin: 0 0 0.75rem !important;
+    padding: 0;
+    border: 0;
+}
+
+body#page-course-management .bulk-actions .detail-pair:last-child {
+    margin-bottom: 0 !important;
+}
+
+body#page-course-management .bulk-actions .pair-key,
+body#page-course-management .bulk-actions .pair-value {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+}
+
+body#page-course-management .bulk-actions .pair-key {
+    margin-bottom: 0.3rem;
+    color: var(--vrb-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+body#page-course-management .bulk-actions .pair-value .form-select {
+    width: 100%;
+}
+
+/* Course detail action row (View / Edit / Enrolled users / ... / Delete):
+   compact outlined buttons, evenly spaced. */
+body#page-course-management .course-detail-listing-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+}

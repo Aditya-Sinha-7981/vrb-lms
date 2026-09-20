@@ -2,6 +2,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'theme_vrblms';
-$plugin->version = 2026092001;
+$plugin->version = 2026092002;
 $plugin->requires = 2025100600;
 $plugin->maturity = MATURITY_ALPHA;

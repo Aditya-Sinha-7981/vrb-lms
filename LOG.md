@@ -3197,3 +3197,36 @@ the look.
   (Moove), not `#region-main`; card count is the group's direct children
   (nested groups count as one). Screenshots from the Chrome tool tile the
   viewport 4x at some window sizes — the top-left tile is the real page.
+
+## [2026-09-20] — Course management + child screens UI refresh
+
+**What/why:** User asked to improve the UI of course/category management and
+its child pages to match the theme (updated, not pill-style). CSS only —
+no markup, backend or behaviour changes.
+**Files touched:** `public/theme/vrblms/style/custom.css` (new section 21 +
+  refinements block at the end), `public/theme/vrblms/version.php`
+  (`2026092001` → `2026092002`).
+**Screens covered (all body-id scoped, employee pages untouched):**
+  `#page-course-management`, `#page-course-edit`, `#page-course-editcategory`,
+  `#page-course-delete`, `#page-course-deletecategory`,
+  `#page-enrol-instances`, `#page-enrol-editinstance`.
+  - Management: page ground transparent (`#topofscroll` + `#region-main`),
+    flat white cards, quiet headers, hover rows, square action-icon hit
+    targets, course-count pill, bulk-action forms as a tinted box with
+    stacked labels, course-detail label/value layout, outlined detail
+    buttons (Delete in red), navy primary "Create new ..." buttons.
+  - Forms: white inputs/selects with navy focus ring, outlined secondary
+    buttons, category/enrol-instance form carded, sticky Save/Cancel bar.
+  - Delete confirmations: destructive button is red.
+  - Enrolment methods: same table styling as admin (section 14).
+**Verification done:** Chrome as admin — management (categories, courses,
+  detail pane), edit course, add category, delete confirm, enrolment
+  methods all rendered and checked.
+**Gotchas:** Moodle marks the selected management row with
+  `[data-selected="1"]` (6px blue left border), NOT a `.selected` class —
+  section 17's `.listitem.selected` rule never matched. The white panel on
+  management is `#region-main` (not just `#topofscroll`). The
+  `.listing-actions` container is shared by "Create new ..." (category/
+  course-listing-actions) and the course-detail button row
+  (course-detail-listing-actions) — scope primary-button styling to the
+  former only.
