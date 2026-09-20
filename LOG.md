@@ -3283,3 +3283,32 @@ close) instead of hidden. Replaced the "edit mode only" rule (section 22):
     computed rect when clicking in automation. Login page footer not viewed
     (needs a logged-out session) — same `#page-wrapper > #page` structure.
     Admin Edit-mode drawer (`data-forceopen`) not clicked through.
+
+## [2026-09-20] — Block drawer (hamburger sidebar) visual polish
+
+**What/why:** After the hamburger drawer was committed (2eee1a14e2e), user
+asked to "beautify this side-bar". CSS only.
+**Files touched:** `public/theme/vrblms/style/custom.css` (new section 23),
+  `public/theme/vrblms/version.php` (`2026092004` → `2026092005`).
+**What changed (all scoped to `.drawer-right`):**
+  - Header bar: "MENU" micro-label on the left (CSS `::before`, English
+    only), round close button on the right, surface background + bottom
+    border.
+  - Blocks read as sections, not boxed cards: no border/shadow, block title
+    ("Navigation" / "Administration") as a small uppercase muted label.
+  - Tree (`ul.block_tree > li > p.tree_item`): thin guide line for nested
+    levels, 6px-radius hover rows, branch rows semi-bold, chevron given
+    spacing, icons navy at 75%, current page (`.active_tree_node:not(.branch)`)
+    = navy tint + 3px left bar. Moodle also flags the expanded parent branch
+    as `.active_tree_node`; only the leaf gets the bar, the branch just
+    turns navy.
+  - Soft navy scrim behind the open drawer (`body:has(.drawer-right.show)::after`,
+    `pointer-events:none` so outside-clicks still reach the close script).
+**Verification:** Chrome — employee (Kavita) on My courses and admin on
+  course/management.php (both Navigation + Administration blocks styled).
+  Also confirmed the login page footer sits at the very bottom and shows no
+  hamburger (no drawer there).
+**Gotchas:** a rule elsewhere zeroes side padding on `p.tree_item.branch`,
+  so padding is restated on `li > p.tree_item`. My courses cards take
+  several seconds to appear right after `purge_caches.php` (AJAX-loaded, cold
+  caches) — not related to the drawer.

@@ -33,6 +33,7 @@
  *  20. Site administration overview — card grid + popups
  *  21. Course management + child screens — refreshed admin chrome
  *  22. Right-hand block drawer — hamburger overlay
+ *  23. Block drawer contents — header, blocks, navigation tree
  *
  * Phase 5 (course + quiz flow) is a deliberately conservative CSS-only
  * pass — no course-format renderer override, no mod_quiz renderer
@@ -3018,3 +3019,170 @@ body#page-course-management .course-detail-listing-actions {
 .vrb-blocks-hamburger:focus-visible {
     box-shadow: 0 0 0 3px rgba(0, 11, 67, 0.25);
 }
+
+/* ============================================================
+   23. BLOCK DRAWER CONTENTS  (.drawer-right — Navigation / Administration)
+   Visual polish for the hamburger drawer from section 22: a proper header
+   bar, blocks that read as sections rather than boxed cards, and a tidier
+   navigation tree (guide lines, hover rows, highlighted current page).
+   Scoped to .drawer-right so the left course-index drawer is untouched.
+   Tree markup (block_navigation / block_settings): ul.block_tree >
+   li.depth_N > p.tree_item[.branch|.hasicon][.active_tree_node].
+   ============================================================ */
+
+/* Soft scrim behind the open drawer. pointer-events:none keeps every click
+   reaching the page, so the outside-click-to-close script still works. */
+body:has(.drawer.drawer-right.show)::after {
+    content: "";
+    position: fixed;
+    inset: 71px 0 0 0;
+    z-index: 1040;
+    background: rgba(0, 11, 67, 0.08);
+    pointer-events: none;
+}
+
+.drawer.drawer-right {
+    background: var(--vrb-card);
+}
+
+/* --- Header bar: title on the left, close button on the right --- */
+.drawer-right .drawerheader {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 3.25rem;
+    padding: 0 0.75rem 0 1.25rem;
+    background: var(--vrb-surface);
+    border-bottom: 1px solid var(--vrb-border);
+}
+
+.drawer-right .drawerheader::before {
+    content: "Menu";
+    order: -1;
+    color: var(--vrb-navy);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.drawer-right .drawerheader .drawertoggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border-radius: 50%;
+    color: var(--vrb-text-2);
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.drawer-right .drawerheader .drawertoggle:hover,
+.drawer-right .drawerheader .drawertoggle:focus-visible {
+    background: rgba(0, 11, 67, 0.08);
+    color: var(--vrb-navy);
+}
+
+/* --- Blocks: sections, not boxed cards --- */
+.drawer-right .drawercontent {
+    padding: 1rem 0.75rem 1.5rem;
+}
+
+.drawer-right .block.card {
+    margin-bottom: 1.25rem !important;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.drawer-right .block .card-body {
+    padding: 0 !important;
+}
+
+.drawer-right .block .card-title {
+    margin: 0 0 0.4rem 0.6rem;
+    color: var(--vrb-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.drawer-right .block .card-text.content {
+    margin-top: 0 !important;
+}
+
+/* --- Navigation / settings tree --- */
+.drawer-right .block_tree,
+.drawer-right .block_tree ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* Nested levels: indent with a thin guide line. */
+.drawer-right .block_tree ul {
+    margin: 0 0 0.15rem 0.95rem;
+    padding-left: 0.3rem;
+    border-left: 1px solid var(--vrb-border);
+}
+
+.drawer-right .block_tree p.tree_item {
+    margin: 1px 0;
+    padding: 0.42rem 0.6rem;
+    border-radius: 6px;
+    color: var(--vrb-text-2);
+    font-size: 0.9rem;
+    line-height: 1.35;
+    transition: background-color 0.12s, color 0.12s;
+}
+
+.drawer-right .block_tree p.tree_item a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.drawer-right .block_tree p.tree_item:hover {
+    background: rgba(0, 11, 67, 0.06);
+    color: var(--vrb-navy);
+}
+
+/* Branch (expandable) rows read slightly stronger than leaves. */
+.drawer-right .block_tree p.tree_item.branch {
+    color: var(--vrb-text);
+    font-weight: 600;
+}
+
+/* Some tree rules zero the side padding on branch rows; restate it. */
+.drawer-right .block_tree li > p.tree_item {
+    padding: 0.42rem 0.6rem;
+}
+
+/* Expand/collapse chevron: a little breathing room before the label. */
+.drawer-right .block_tree p.tree_item.branch::before {
+    margin-right: 0.45rem;
+    color: var(--vrb-muted);
+}
+
+/* Current page: highlighted row. Moodle also flags the expanded parent
+   branch as active, so only the leaf gets the tint + bar; a branch just
+   turns navy. */
+.drawer-right .block_tree p.tree_item.active_tree_node {
+    color: var(--vrb-navy);
+    font-weight: 700;
+}
+
+.drawer-right .block_tree p.tree_item.active_tree_node:not(.branch) {
+    background: rgba(0, 11, 67, 0.07);
+    box-shadow: inset 3px 0 0 var(--vrb-navy);
+}
+
+.drawer-right .block_tree p.tree_item .icon {
+    width: 1rem;
+    margin-right: 0.5rem;
+    color: var(--vrb-navy);
+    opacity: 0.75;
+}
+
