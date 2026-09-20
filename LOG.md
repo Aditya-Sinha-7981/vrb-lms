@@ -3101,3 +3101,67 @@ exactly 10/15 vs exactly 11/15 against a 70% pass grade.
     itemnumber-0 grade item — confirmed no `mod_quiz\grades\gradeitems`
     override class exists in this branch, so `$moduleinfo->gradepass`
     (not some suffixed variant) is the correct field to set.
+
+## [2026-09-08] — Book activity (mod_book) design pass: TOC size + colored active state
+
+**What/why:** User tried a real `local_vrbcontent`-imported Book chapter
+("Veeba Company: Our Story") in the browser and asked for a design pass:
+the Table of contents sidebar was too large, the current chapter used
+only bold (not color) to show which page you're on, and asked generically
+for the page to look more attractive/consistent with prior design work.
+**Files touched:** `public/theme/vrblms/style/custom.css` (new section
+  19), `public/theme/vrblms/version.php` (`2026090202` → `2026090801`).
+**DOM verified live first, not guessed** (per this project's standing
+  rule) via `mcp__claude-in-chrome__javascript_tool` on a real Book page
+  (`mod/book/view.php?id=25`, course 2 "Veeba Onboarding"): the TOC is a
+  Moodle "fake block" `section.block_book_toc.card`, with a `.card-title`
+  heading and a `.book_toc` div containing a flat `<ul>`; the *current*
+  chapter renders as a bare `<li><strong>` (no link, no class - that's
+  the only signal marking "this one"), every other chapter as
+  `<li><a>`. Confirmed `body.path-mod-book` as a real, scoped body class
+  (applies to any Book activity, any course). Chapter content structure
+  (from `book_provisioner`'s own `render_content()`): chapter title as a
+  bare `<h3>`, each field as `<h5>{label}</h5><p>{value}</p>` inside
+  `.book_content .no-overflow`.
+  - **New section 19** (`custom.css`), scoped entirely to
+    `body.path-mod-book`:
+    - Hid a genuinely duplicate, unstyled `<h2>` that repeats the book's
+      name a second time in the content area (already shown once in the
+      activity header above it) — pure redundancy removed, no
+      information lost.
+    - TOC: smaller uppercase-tracked "TABLE OF CONTENTS" label (navy,
+      0.78rem — same micro-label pattern as the quiz-review stats strip),
+      tighter list spacing (0.85rem items, 0.4rem padding vs. the
+      stock ~1rem), no bullet indentation.
+    - **Current chapter now uses color, not just bold**: reused the
+      exact "selected row" treatment already established for
+      `course/management.php`'s selected category (section 17) —
+      `rgba(0,11,67,.06)` navy tint background + `inset 3px 0 0
+      var(--vrb-navy)` left accent bar — via `li:has(> strong)` (`:has()`
+      already relied on elsewhere in this stylesheet, e.g. section 7's
+      selected-answer-row rule). The `<strong>` text itself goes navy,
+      weight 600 (not bare bold-black).
+    - Chapter title (`.book_content > h3`): navy, bold, bottom-border
+      separator for real visual hierarchy instead of default Bootstrap
+      black h3.
+    - Field labels (the `<h5>` per field, e.g. "Year"): converted to the
+      same small-caps muted-label pattern used for quiz review stats
+      (`.vrb-qr-stats span`) — 0.75rem, uppercase, `--vrb-muted` — so
+      imported Book content reads as structured fields, not alternating
+      bold/plain lines.
+**Verification done:** `purge_caches.php` + `upgrade.php
+  --non-interactive` → `theme_vrblms ++ Success ++`. Browser, logged in
+  as admin, editing off (real employee-facing render): confirmed on
+  "Founded & First Logo" (first chapter, TOC highlight correct) and
+  after clicking to "First Global QSR Order" (second chapter) that the
+  active-chapter highlight correctly follows the current page, field
+  labels/title render as designed, and the duplicate heading is gone.
+  Zoomed screenshot of the TOC confirms legible sizing and the colored
+  active row.
+**Gotchas for future agents:** the TOC's current-chapter marker really is
+  just "a `<strong>` with no distinguishing class" — if a future Moodle
+  version changes this markup, the `:has(> strong)` selector will stop
+  matching and the active-row styling will silently disappear (not
+  break anything else). `#region-main > h2` is scoped tightly to
+  `body.path-mod-book` specifically because a bare `h2` selector would be
+  far too broad sitewide — don't lift that rule out of the book scope.
