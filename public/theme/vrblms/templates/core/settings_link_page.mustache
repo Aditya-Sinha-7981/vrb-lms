@@ -1,0 +1,149 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template core/settings_link_page
+
+    theme_vrblms override of the core admin overview (admin/search.php).
+    Same context and the same tab-pane ids ("link<key>") as core, so the
+    secondary-navigation tabs keep switching panes exactly as before. The
+    only change is presentational: each settings group is a large button
+    card, and clicking it opens a Bootstrap modal that lists that group's
+    links. Every link keeps its original href — nothing here changes what a
+    setting does or where it lives. Styling: style/custom.css section 20.
+
+    Example context (json):
+    {
+        "node": {
+            "text": "Root of menu",
+            "key": "test0",
+            "display": true,
+            "children": [
+                {
+                    "text": "Child of menu",
+                    "key": "test1",
+                    "display": true,
+                    "children": []
+                }
+            ]
+        }
+    }
+}}
+{{^secondarynavigation}}
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" href="#link{{node.key}}" data-bs-toggle="tab" role="tab" aria-selected="true">{{node.text}}</a>
+        </li>
+        {{#node.children}}
+            {{#children.count}}
+                {{#display}}
+                    {{^is_short_branch}}
+                        <li class="nav-item">
+                            <a class="nav-link" href="#link{{key}}" data-bs-toggle="tab" role="tab" aria-selected="false" tabindex="-1">{{text}}</a>
+                        </li>
+                    {{/is_short_branch}}
+                {{/display}}
+            {{/children.count}}
+        {{/node.children}}
+    </ul>
+{{/secondarynavigation}}
+<div class="tab-content mt-3 vrb-am">
+    {{! ===== Root pane ("General"): loose links as quick links, short branches as cards ===== }}
+    <div class="tab-pane active" id="link{{node.key}}" {{^secondarynavigation}}role="tabpanel"{{/secondarynavigation}}>
+        <div class="vrb-am-quick">
+            <h3 class="vrb-am-heading">{{#str}} adminquicklinks, theme_vrblms {{/str}}</h3>
+            <ul class="vrb-am-chips list-unstyled">
+                {{#node.children}}
+                    {{^children.count}}
+                        {{#display}}
+                            <li><a class="vrb-am-chip" href="{{{action}}}">{{text}}</a></li>
+                        {{/display}}
+                    {{/children.count}}
+                {{/node.children}}
+            </ul>
+        </div>
+
+        <div class="vrb-am-grid">
+            {{#node.children}}
+                {{#display}}
+                    {{#children.count}}
+                        {{#is_short_branch}}
+                            <button type="button" class="vrb-am-card" data-key="{{key}}"
+                                    data-bs-toggle="modal" data-bs-target="#vrb-am-{{key}}">
+                                <span class="vrb-am-icon" data-key="{{key}}" aria-hidden="true"></span>
+                                <span class="vrb-am-card-title">{{text}}</span>
+                                <span class="vrb-am-card-count">{{children.count}}</span>
+                            </button>
+                        {{/is_short_branch}}
+                    {{/children.count}}
+                {{/display}}
+            {{/node.children}}
+        </div>
+
+        {{#node.children}}
+            {{#display}}
+                {{#children.count}}
+                    {{#is_short_branch}}
+                        {{> core/settings_link_modal }}
+                    {{/is_short_branch}}
+                {{/children.count}}
+            {{/display}}
+        {{/node.children}}
+    </div>
+
+    {{! ===== One pane per top-level category (Users, Courses, Plugins, ...) ===== }}
+    {{#node.children}}
+        {{#children.count}}
+            <div class="tab-pane" id="link{{key}}" {{^secondarynavigation}}role="tabpanel"{{/secondarynavigation}}>
+                <div class="vrb-am-quick">
+                    <h3 class="vrb-am-heading">{{text}}</h3>
+                    <ul class="vrb-am-chips list-unstyled">
+                        {{#children}}
+                            {{#display}}
+                                {{^children.count}}
+                                    <li><a class="vrb-am-chip" href="{{{action}}}">{{text}}</a></li>
+                                {{/children.count}}
+                            {{/display}}
+                        {{/children}}
+                    </ul>
+                </div>
+
+                <div class="vrb-am-grid">
+                    {{#children}}
+                        {{#display}}
+                            {{#children.count}}
+                                <button type="button" class="vrb-am-card" data-key="{{key}}"
+                                        data-bs-toggle="modal" data-bs-target="#vrb-am-{{key}}">
+                                    <span class="vrb-am-icon" data-key="{{key}}" aria-hidden="true"></span>
+                                    <span class="vrb-am-card-title">{{text}}</span>
+                                    <span class="vrb-am-card-count">{{children.count}}</span>
+                                </button>
+                            {{/children.count}}
+                        {{/display}}
+                    {{/children}}
+                </div>
+
+                {{#children}}
+                    {{#display}}
+                        {{#children.count}}
+                            {{> core/settings_link_modal }}
+                        {{/children.count}}
+                    {{/display}}
+                {{/children}}
+            </div>
+        {{/children.count}}
+    {{/node.children}}
+</div>

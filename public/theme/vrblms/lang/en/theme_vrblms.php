@@ -39,3 +39,7 @@ $string['loginsubtitle'] = 'Sign in with your Employee Code to access your train
 // My courses / brand selection.
 $string['mycoursesheading'] = 'Select your brand module';
 $string['mycoursessubtitle'] = 'Choose a brand to continue your training.';
+
+// Site administration overview (templates/core/settings_link_page.mustache).
+$string['adminquicklinks'] = 'Quick links';
+$string['adminopencategory'] = 'Open {$a} page';

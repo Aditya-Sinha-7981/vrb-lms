@@ -3165,3 +3165,35 @@ for the page to look more attractive/consistent with prior design work.
   break anything else). `#region-main > h2` is scoped tightly to
   `body.path-mod-book` specifically because a bare `h2` selector would be
   far too broad sitewide — don't lift that rule out of the book scope.
+
+## [2026-09-20] — Site administration overview: card grid + popups
+
+**What/why:** User asked for a prettier admin UI, specifically: make each
+outer settings group on `admin/search.php` a big button in a grid, opening
+a popup with that group's links (e.g. Badges → its 4 links). No
+functionality/backend changes; approved by the user after review.
+the look.
+**Files touched:** new `public/theme/vrblms/templates/core/settings_link_page.mustache`
+  (override of the core admin overview template) and new
+  `.../core/settings_link_modal.mustache` (popup partial);
+  `public/theme/vrblms/style/custom.css` (new section 20);
+  `public/theme/vrblms/lang/en/theme_vrblms.php` (2 strings:
+  `adminquicklinks`, `adminopencategory`); `version.php`
+  (`2026090801` → `2026092001`).
+**How it works:** same context + same `link<key>` tab-pane ids as core, so
+  the secondary-nav tabs still switch panes. Loose (un-grouped) links
+  become "quick link" chips; each group becomes a `<button class="vrb-am-card">`
+  with `data-bs-toggle="modal"`. Popups are stock Bootstrap 5 modals
+  (Moodle already loads the data-api — no new JS). Popup lists are rendered
+  with the unmodified `core/settings_link_page_single` partial, so nested
+  groups behave as core. Every link keeps its original href. Icons: Font
+  Awesome glyph per admin-tree key via `.vrb-am-icon[data-key=...]::before`
+  in CSS (cog fallback for unknown keys).
+**Verification done:** logged in as admin in Chrome; checked General,
+  Courses and Plugins tabs (tab switching intact), opened the Badges
+  (4 links) and Activity modules (22 entries, nested, scrolls) popups,
+  Esc closes, backdrop/scroll-lock clean, settings page unchanged.
+**Gotchas:** the white panel behind the overview is `#topofscroll`
+  (Moove), not `#region-main`; card count is the group's direct children
+  (nested groups count as one). Screenshots from the Chrome tool tile the
+  viewport 4x at some window sizes — the top-left tile is the real page.

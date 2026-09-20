@@ -30,6 +30,7 @@
  *  17. Course create / edit / manage screens (mform + management)
  *  18. Navbar cleanup — hide My Learning switcher + dark mode toggle
  *  19. Book activity (mod_book) — table of contents + chapter content
+ *  20. Site administration overview — card grid + popups
  *
  * Phase 5 (course + quiz flow) is a deliberately conservative CSS-only
  * pass — no course-format renderer override, no mod_quiz renderer
@@ -2188,3 +2189,342 @@ body.path-mod-book .book_content .no-overflow p {
     color: var(--vrb-text);
     margin-bottom: 0;
 }
+
+/* ============================================================
+   20. SITE ADMINISTRATION OVERVIEW — card grid + popups
+   Markup: theme/vrblms/templates/core/settings_link_page.mustache (+
+   settings_link_modal.mustache). Each settings group is a big button
+   card; clicking it opens a Bootstrap modal listing that group's links.
+   Purely presentational — every link keeps its original href.
+   Scoped to .vrb-am, which only exists on admin/search.php.
+   ============================================================ */
+
+/* The overview sits directly on the page ground — drop the white panel
+   Moove draws around the page content (#topofscroll) so the white cards read as cards. */
+body#page-admin-search #topofscroll,
+body#page-admin-search #region-main {
+    background: transparent;
+    box-shadow: none;
+}
+
+body#page-admin-search #topofscroll {
+    padding: 0;
+}
+
+/* Line the cards up with the page heading (Moodle's inner wrapper adds
+   15px of side padding) and close the gap under it. */
+.vrb-am {
+    margin: 0 -0.75rem;
+}
+
+body#page-admin-search .vrb-am.tab-content {
+    margin-top: 0 !important;
+}
+
+/* Quick links (the loose, un-grouped links at the top of a tab) */
+.vrb-am-quick {
+    margin-bottom: 1.75rem;
+}
+
+.vrb-am-quick:not(:has(.vrb-am-chip)) {
+    display: none;
+}
+
+.vrb-am-heading {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--vrb-muted);
+    margin: 0 0 0.75rem;
+}
+
+.vrb-am-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+}
+
+.vrb-am-chip {
+    display: inline-block;
+    padding: 0.4rem 0.85rem;
+    background: var(--vrb-card);
+    border: 1px solid var(--vrb-border);
+    border-radius: 999px;
+    color: var(--vrb-navy);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.vrb-am-chip:hover,
+.vrb-am-chip:focus-visible {
+    background: var(--vrb-navy);
+    border-color: var(--vrb-navy);
+    color: var(--vrb-on-navy);
+    text-decoration: none;
+}
+
+/* Card grid */
+.vrb-am-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 1rem;
+}
+
+.vrb-am-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    width: 100%;
+    min-height: 8.5rem;
+    padding: 1.15rem 1.25rem;
+    background: var(--vrb-card);
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-card);
+    font-family: var(--vrb-font);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+.vrb-am-card:hover,
+.vrb-am-card:focus-visible {
+    border-color: var(--vrb-navy);
+    box-shadow: 0 6px 18px rgba(0, 11, 67, 0.10);
+    transform: translateY(-2px);
+    outline: 0;
+}
+
+.vrb-am-card:focus-visible {
+    box-shadow: 0 0 0 3px rgba(0, 11, 67, 0.25);
+}
+
+.vrb-am-card-title {
+    margin-top: 0.55rem;
+    color: var(--vrb-navy);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+/* Item count — a small pill in the card's top-right corner (a bare
+   number avoids "1 items" grammar; it's the number of entries the
+   popup will list). */
+.vrb-am-card-count {
+    position: absolute;
+    top: 0.9rem;
+    right: 1rem;
+    min-width: 1.5rem;
+    padding: 0.1rem 0.5rem;
+    background: var(--vrb-surface);
+    border: 1px solid var(--vrb-border);
+    border-radius: 999px;
+    color: var(--vrb-text-2);
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: center;
+}
+
+/* Icon tile — glyph comes from data-key (Font Awesome), default = cog */
+.vrb-am-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 10px;
+    background: rgba(0, 11, 67, 0.06);
+    color: var(--vrb-navy);
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.vrb-am-icon::before {
+    content: "\f013";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 1.05rem;
+    line-height: 1;
+}
+
+.vrb-am-card:hover .vrb-am-icon,
+.vrb-am-card:focus-visible .vrb-am-icon {
+    background: var(--vrb-navy);
+    color: var(--vrb-on-navy);
+}
+
+/* Popup */
+.vrb-am-modal .modal-dialog {
+    max-width: 36rem;
+}
+
+.vrb-am-modal .modal-content {
+    border: 0;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0, 11, 67, 0.22);
+    overflow: hidden;
+}
+
+.vrb-am-modal .modal-header {
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1.1rem 1.4rem;
+    background: var(--vrb-surface);
+    border-bottom: 1px solid var(--vrb-border);
+}
+
+.vrb-am-modal .modal-header .vrb-am-icon {
+    width: 2.3rem;
+    height: 2.3rem;
+    background: var(--vrb-navy);
+    color: var(--vrb-on-navy);
+}
+
+.vrb-am-modal .modal-title {
+    flex: 1 1 auto;
+    margin: 0;
+    color: var(--vrb-navy);
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.vrb-am-modal .modal-body {
+    padding: 0.75rem 1rem 1rem;
+}
+
+.vrb-am-links,
+.vrb-am-links ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.vrb-am-links li > a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.8rem;
+    border-radius: 6px;
+    color: var(--vrb-text);
+    font-size: 0.95rem;
+    text-decoration: none;
+}
+
+.vrb-am-links li > a::after {
+    content: "\f054";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 0.65rem;
+    color: var(--vrb-muted);
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.vrb-am-modal .vrb-am-links li > a:hover,
+.vrb-am-modal .vrb-am-links li > a:focus-visible {
+    background: rgba(0, 11, 67, 0.06);
+    color: var(--vrb-navy);
+    text-decoration: none;
+}
+
+.vrb-am-links li > a:hover::after,
+.vrb-am-links li > a:focus-visible::after {
+    opacity: 1;
+}
+
+/* Non-link sub-heading + nested group (rendered by settings_link_page_single) */
+.vrb-am-links li > strong {
+    display: block;
+    padding: 0.85rem 0.8rem 0.25rem;
+    color: var(--vrb-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.vrb-am-links ul {
+    margin: 0 0 0.4rem 0.8rem;
+    padding-left: 0.4rem;
+    border-left: 2px solid var(--vrb-border);
+}
+
+.vrb-am-modal .modal-footer {
+    justify-content: flex-start;
+    padding: 0.75rem 1.4rem;
+    background: var(--vrb-surface);
+    border-top: 1px solid var(--vrb-border);
+}
+
+.vrb-am-open {
+    color: var(--vrb-navy);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Icon glyph per admin-tree key (Font Awesome 6 Free, solid). Unknown keys
+   (e.g. a future plugin's category) fall back to the cog above. */
+.vrb-am-icon[data-key="ai"]::before { content: "\f72b"; }
+.vrb-am-icon[data-key="competencies"]::before { content: "\f0ae"; }
+.vrb-am-icon[data-key="badges"]::before { content: "\f559"; }
+.vrb-am-icon[data-key="h5p"]::before { content: "\f12e"; }
+.vrb-am-icon[data-key="license"]::before { content: "\f24e"; }
+.vrb-am-icon[data-key="location"]::before { content: "\f3c5"; }
+.vrb-am-icon[data-key="language"]::before { content: "\f1ab"; }
+.vrb-am-icon[data-key="messaging"]::before { content: "\f086"; }
+.vrb-am-icon[data-key="payment"]::before { content: "\f09d"; }
+.vrb-am-icon[data-key="security"]::before { content: "\f3ed"; }
+.vrb-am-icon[data-key="frontpage"]::before { content: "\f015"; }
+.vrb-am-icon[data-key="customfield"]::before { content: "\f1de"; }
+.vrb-am-icon[data-key="moodlenet"]::before { content: "\f0ac"; }
+.vrb-am-icon[data-key="accounts"]::before { content: "\f0c0"; }
+.vrb-am-icon[data-key="roles"]::before { content: "\f502"; }
+.vrb-am-icon[data-key="privacy"]::before { content: "\f505"; }
+.vrb-am-icon[data-key="coursedefaultsettings"]::before { content: "\f013"; }
+.vrb-am-icon[data-key="groups"]::before { content: "\e533"; }
+.vrb-am-icon[data-key="activitychooser"]::before { content: "\f009"; }
+.vrb-am-icon[data-key="backups"]::before { content: "\f187"; }
+.vrb-am-icon[data-key="gradereports"]::before { content: "\f201"; }
+.vrb-am-icon[data-key="gradepenalty"]::before { content: "\f0e3"; }
+.vrb-am-icon[data-key="modsettings"]::before { content: "\f1b3"; }
+.vrb-am-icon[data-key="tools"]::before { content: "\f7d9"; }
+.vrb-am-icon[data-key="antivirussettings"]::before { content: "\e074"; }
+.vrb-am-icon[data-key="authsettings"]::before { content: "\f084"; }
+.vrb-am-icon[data-key="availabilitysettings"]::before { content: "\f023"; }
+.vrb-am-icon[data-key="blocksettings"]::before { content: "\f0db"; }
+.vrb-am-icon[data-key="cache"]::before { content: "\f0e7"; }
+.vrb-am-icon[data-key="contentbanksettings"]::before { content: "\f87c"; }
+.vrb-am-icon[data-key="formatsettings"]::before { content: "\f5fd"; }
+.vrb-am-icon[data-key="customfieldsettings"]::before { content: "\f1de"; }
+.vrb-am-icon[data-key="dataformatsettings"]::before { content: "\f56e"; }
+.vrb-am-icon[data-key="fileconverterplugins"]::before { content: "\f2f1"; }
+.vrb-am-icon[data-key="enrolments"]::before { content: "\f234"; }
+.vrb-am-icon[data-key="filtersettings"]::before { content: "\f0b0"; }
+.vrb-am-icon[data-key="localplugins"]::before { content: "\f1e6"; }
+.vrb-am-icon[data-key="logging"]::before { content: "\f1da"; }
+.vrb-am-icon[data-key="mlbackendsettings"]::before { content: "\f5dc"; }
+.vrb-am-icon[data-key="mediaplayers"]::before { content: "\f144"; }
+.vrb-am-icon[data-key="paymentgateways"]::before { content: "\f0d6"; }
+.vrb-am-icon[data-key="qbanksettings"]::before { content: "\f059"; }
+.vrb-am-icon[data-key="qbehavioursettings"]::before { content: "\f074"; }
+.vrb-am-icon[data-key="qtypesettings"]::before { content: "\f03a"; }
+.vrb-am-icon[data-key="reportplugins"]::before { content: "\e0e3"; }
+.vrb-am-icon[data-key="repositorysettings"]::before { content: "\f07c"; }
+.vrb-am-icon[data-key="searchplugins"]::before { content: "\f002"; }
+.vrb-am-icon[data-key="sms"]::before { content: "\f27a"; }
+.vrb-am-icon[data-key="editorsettings"]::before { content: "\f044"; }
+.vrb-am-icon[data-key="file_redactor"]::before { content: "\f12d"; }
+.vrb-am-icon[data-key="taskconfig"]::before { content: "\f274"; }
+.vrb-am-icon[data-key="email"]::before { content: "\f0e0"; }
+.vrb-am-icon[data-key="webservicesettings"]::before { content: "\f0c2"; }
+.vrb-am-icon[data-key="aireports"]::before { content: "\f544"; }
+.vrb-am-icon[data-key="reportbuilder"]::before { content: "\f0ce"; }
+.vrb-am-icon[data-key="toolmfareports"]::before { content: "\f577"; }
+.vrb-am-icon[data-key="experimental"]::before { content: "\f0c3"; }
