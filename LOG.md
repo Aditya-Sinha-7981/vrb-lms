@@ -3230,3 +3230,56 @@ no markup, backend or behaviour changes.
   course-listing-actions) and the course-detail button row
   (course-detail-listing-actions) — scope primary-button styling to the
   former only.
+
+## [2026-09-20] — Footer replaced by WEBNOAH credit strip; right block drawer edit-mode only
+
+**What/why:** User asked to remove the footer everywhere and replace it with a
+small "Designed and Developed by WEBNOAH" strip, and to fix the right-hand
+Navigation/Administration block drawer, which showed on every page (incl.
+employee pages) and made the footer look cut off on the right.
+**Files touched:** new `public/theme/vrblms/templates/theme_moove/footer.mustache`
+  and `.../theme_moove/moove/loginfooter.mustache` (overrides of Moove's
+  footer partials — used by drawers/frontpage layouts and the login layout);
+  `style/custom.css` (section 3 rewritten for the strip; new section 22);
+  `lang/en/theme_vrblms.php` (`footercredit`); `version.php`
+  (`2026092002` → `2026092003`).
+**How:** the overrides print only the strip + `output.debug_footer_html` +
+  `output.standard_end_of_body_html` (core requires the last one — do not
+  drop it). Removed as a consequence: "Contact site support", the
+  "logged in as / Log out" line (Log out is still in the user menu), "Data
+  retention summary", the help "?" popover and Moodle's version line.
+  Drawer: `body:not(.editing)` hides `.drawer-right` + its toggle, and
+  resets `#page.drawers.show-drawer-right { width: calc(100% - 315px) }`
+  (that width rule, not margin, is what reserved the space). With Edit mode
+  on the drawer returns so admins can still manage blocks.
+**Verification:** logged-in employee (Kavita) in Chrome — leaderboard now
+  full width with no drawer, strip at the bottom; curl on login + front
+  page and fetch on quiz/my-courses/profile confirm strip present and old
+  footer gone. Admin Edit-mode path relies on core's `body.editing`
+  (lib/pagelib.php) — not clicked through in-browser this session.
+
+**Follow-up (same day, same uncommitted batch) — sticky footer + hamburger drawer.**
+User wanted the footer always at the bottom of the screen and the right
+menu kept but as a hamburger overlay (click to open, click anywhere to
+close) instead of hidden. Replaced the "edit mode only" rule (section 22):
+  - Sticky footer: `#page-wrapper` is already a full-height flex column and
+    the footer is its direct child (NOT inside `#page`), so
+    `#page-wrapper > #page { flex: 1 0 auto }` pins it (custom.css §3).
+    Measured on short pages: footer bottom == viewport height.
+  - Drawer is now an overlay: `#page.drawers.show-drawer-right { width:100% }`
+    always (that width rule, not margin, is what reserved the space), plus
+    shadow/z-index; Moodle's own `.drawer-right-toggle` is hidden.
+  - New `javascript/blocksmenu.js` (registered in theme `config.php`
+    `javascripts_footer`): injects a hamburger `<button data-toggler="drawers"
+    data-action="toggle" data-target="theme_boost-drawers-blocks">` into
+    `#usernavigation` so Moodle's delegated click handler does the real
+    open/close (and keeps the user preference); document click outside the
+    drawer / Esc clicks the drawer's own close button; on load, a drawer
+    rendered open is closed once, waiting for the `not-initialized` class to
+    disappear (closing before Drawers registers its listeners is a no-op).
+  - Verified in Chrome as employee: open, outside-click close, Esc close,
+    hamburger toggle. Theme version -> 2026092004.
+  - Gotchas: the hamburger's x-position differs per page, so use its
+    computed rect when clicking in automation. Login page footer not viewed
+    (needs a logged-out session) — same `#page-wrapper > #page` structure.
+    Admin Edit-mode drawer (`data-forceopen`) not clicked through.

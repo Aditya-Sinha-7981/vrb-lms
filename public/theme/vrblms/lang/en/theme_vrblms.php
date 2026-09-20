@@ -43,3 +43,6 @@ $string['mycoursessubtitle'] = 'Choose a brand to continue your training.';
 // Site administration overview (templates/core/settings_link_page.mustache).
 $string['adminquicklinks'] = 'Quick links';
 $string['adminopencategory'] = 'Open {$a} page';
+
+// Footer strip (templates/theme_moove/footer.mustache).
+$string['footercredit'] = 'Designed and Developed by';

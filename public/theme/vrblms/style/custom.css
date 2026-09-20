@@ -32,6 +32,7 @@
  *  19. Book activity (mod_book) — table of contents + chapter content
  *  20. Site administration overview — card grid + popups
  *  21. Course management + child screens — refreshed admin chrome
+ *  22. Right-hand block drawer — hamburger overlay
  *
  * Phase 5 (course + quiz flow) is a deliberately conservative CSS-only
  * pass — no course-format renderer override, no mod_quiz renderer
@@ -318,13 +319,44 @@ nav.navbar.fixed-top .site-name {
 
 /* ============================================================
    3. FOOTER
-   Remove theme_moove's "proudly developed by conecti.me" credit strip
-   (the orange bar) — not part of the VRB design. The rest of the footer
-   and the help popover are left intact.
+   theme_moove's full footer is replaced (templates/theme_moove/footer.mustache
+   + moove/loginfooter.mustache) by one slim credit strip.
    ============================================================ */
-#page-footer .copyright,
-#page-footer .madeby {
-    display: none !important;
+/* Sticky footer: #page-wrapper is a full-height flex column, so letting
+   #page take up the slack pins the strip to the bottom of the screen even
+   when the page has little content (works for the login/front-page
+   layouts too — same #page-wrapper > #page + footer structure). */
+#page-wrapper > #page {
+    flex: 1 0 auto;
+}
+
+#page-wrapper > #page-footer {
+    flex: 0 0 auto;
+}
+
+#page-footer.vrb-footer {
+    margin: 0;
+    padding: 0;
+    background: var(--vrb-card);
+    border-top: 1px solid var(--vrb-border);
+}
+
+.vrb-footer-strip {
+    padding: 0.7rem 1rem;
+    color: var(--vrb-muted);
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.vrb-footer-strip strong {
+    color: var(--vrb-navy);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+/* Developer-debug footer output: only visible when debugging is on. */
+#page-footer.vrb-footer .footer-content-debugging:not(:has(*:not(.moove-container-fluid, .footer-dark-inner))) {
+    display: none;
 }
 
 /* ============================================================
@@ -2914,4 +2946,75 @@ body#page-course-management .course-detail-listing-actions {
     justify-content: center;
     gap: 0.4rem;
     margin-bottom: 1.25rem;
+}
+
+/* ============================================================
+   22. RIGHT-HAND BLOCK DRAWER — hamburger overlay
+   The Navigation / Administration block drawer used to sit permanently
+   beside the page: it shrank the layout, overlapped the footer and, for
+   employees, showed a tree they rarely need. It is now an overlay that
+   floats above the page and only appears when the user clicks the
+   hamburger button (injected into the top bar by javascript/blocksmenu.js,
+   which also closes it on any outside click / Esc and starts it closed).
+   Moodle's own drawer JS still does the opening/closing; the page is never
+   resized for it (the .show-drawer-right width rule is neutralised).
+   ============================================================ */
+
+/* Moodle's built-in toggle (top-right of the page content) is replaced by
+   the hamburger in the navbar. */
+.drawer-right-toggle {
+    display: none !important;
+}
+
+/* Never shrink the page to make room for the drawer. */
+#page.drawers.show-drawer-right {
+    width: 100%;
+    margin-right: 0;
+}
+
+#page.drawers.show-drawer-left.show-drawer-right {
+    width: calc(100% - 285px);
+}
+
+.drawer.drawer-right {
+    z-index: 1050;
+    box-shadow: -12px 0 32px rgba(0, 11, 67, 0.16);
+    border-left: 1px solid var(--vrb-border);
+}
+
+/* Hamburger button */
+.vrb-blocks-hamburger {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    align-self: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-left: 0.5rem;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.vrb-blocks-hamburger span {
+    display: block;
+    width: 1.1rem;
+    height: 2px;
+    background: var(--vrb-navy);
+    border-radius: 2px;
+}
+
+.vrb-blocks-hamburger:hover,
+.vrb-blocks-hamburger:focus-visible {
+    background: rgba(0, 11, 67, 0.08);
+    outline: 0;
+}
+
+.vrb-blocks-hamburger:focus-visible {
+    box-shadow: 0 0 0 3px rgba(0, 11, 67, 0.25);
 }

@@ -13,8 +13,9 @@ $THEME->sheets = ['custom'];
 $THEME->removedprimarynavitems = ['myhome'];
 
 // Plain footer script (no AMD build). Progressive enhancement only —
-// currently just the quiz-review score-ring banner. See
-// javascript/quizresult.js and style/custom.css section 8.
-$THEME->javascripts_footer = ['quizresult'];
+// the quiz-review score-ring banner (javascript/quizresult.js, style/
+// custom.css section 8) and the block-drawer hamburger menu
+// (javascript/blocksmenu.js, style/custom.css section 22).
+$THEME->javascripts_footer = ['quizresult', 'blocksmenu'];
 
 $THEME->doctype = 'html5';
