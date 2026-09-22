@@ -1,5 +1,13 @@
 # VRB LMS — Deployment & Git Workflow
 
+> **SUPERSEDED (2026-09-20) for production hosting.** The cPanel
+> shared-hosting plan described below (and in `docs/CPANEL_DEPLOYMENT.md`) is
+> no longer the live plan — production is now a VPS (native Nginx + PHP-FPM +
+> MariaDB, full-repo `git clone` as webroot). The current authoritative plan
+> is **`VPS_DEPLOYMENT.md`** at the repo root. This file is kept as historical
+> record; its general git rules (never commit `config.php`/`moodledata/`, test
+> locally against Docker before pushing) still apply.
+
 ## Current environment
 
 - **Local dev:** MacBook Pro M4 Pro, Docker Desktop, `moodlehq/moodle-docker`

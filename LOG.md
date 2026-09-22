@@ -3312,3 +3312,67 @@ asked to "beautify this side-bar". CSS only.
   so padding is restated on `li > p.tree_item`. My courses cards take
   several seconds to appear right after `purge_caches.php` (AJAX-loaded, cold
   caches) — not related to the drawer.
+
+## [2026-09-20] — Production hosting pivot: cPanel → self-managed VPS (docs only)
+**Agent:** Claude Code (Sonnet 5)
+**What:** The client-side cPanel shared hosting is no longer the production
+  target; a VPS has been acquired (Ubuntu 22.04.5, 1 vCPU / ~2 GB RAM + 1 GB
+  swap, 49 GB disk, primary IP 66.116.253.207, provider-installed PHP 8.4.25
+  and MariaDB 10.11.10, no web server yet). Wrote the new authoritative plan
+  as `VPS_DEPLOYMENT.md` at the repo root: native Nginx + PHP-FPM + MariaDB
+  (NOT Docker — 1 vCPU/2 GB can't afford container overhead; revisit at 2+
+  cores), and a full `git clone` of this repo as the webroot at
+  `/var/www/vrb-lms` (Nginx root = its `public/`), `config.php` hand-made on
+  the server and never committed, `moodledata` outside the repo, deploy =
+  SSH + `git pull` + `sudo -u www-data php admin/cli/purge_caches.php`
+  (manual on purpose, no CI yet). Added a "SUPERSEDED" pointer note at the
+  top of `docs/DEPLOYMENT.md`; its body is untouched. No code changed and no
+  server was touched — this session only wrote docs.
+**Why:** cPanel path was blocked (shell disabled, shared PHP 7.4 account,
+  nested docroot) and needed a `.cpanel.yml` selective-copy pipeline onto a
+  separate Softaculous core install. With root on a VPS the repo (which IS a
+  pinned 5.1.5 tree) can just be cloned whole, which removes core-version
+  skew and the copy pipeline. Server state at time of writing: system
+  updated + rebooted; sudo user `webnoah-aditya` works (password SSH);
+  key-based SSH for it is NOT reliably working (root cause unknown);
+  `PermitRootLogin no` NOT applied (deferred until key auth is proven);
+  ufw NOT configured; no web server; no DNS A record for
+  `learning.vrbconsumer.com` yet (GoDaddy).
+**Files touched:** `VPS_DEPLOYMENT.md` (new, repo root — placed there at the
+  user's explicit request even though `Agents.md` says durable docs go in
+  `docs/`), `docs/DEPLOYMENT.md` (pointer note at top only), `LOG.md`
+  (this entry). `docs/CPANEL_DEPLOYMENT.md` also describes the superseded
+  plan but was deliberately NOT edited (not asked); `Agents.md`'s
+  required-reading list and `CLAUDE.md` don't mention `VPS_DEPLOYMENT.md`
+  yet either.
+**Verification done:** read `public/admin/environment.xml` directly: the
+  `<MOODLE version="5.1">` block requires PHP `8.2.0` with no `<RESTRICT>`
+  and MariaDB `10.11.0` min; the `4.5` block carries
+  `restrict_php_version_84`. `composer.json` says `"php": ">=8.2.0"`.
+  Confirmed `/config.php` is `.gitignore` line 22 and untracked, `*.sql`
+  (incl. `vrb_moodle_dump.sql`) is ignored, no `vendor/` needed for 5.1.5,
+  `admin/cli/*.php` sit at the repo root (outside `public/`), `public/r.php`
+  router exists. VPS specs/versions are as reported by the user from the
+  server, not re-checked. **PHP 8.4 acceptability is only a static XML
+  reading — not yet confirmed by a live run.**
+**Gotchas for future agents:**
+  - The brief for this work said the "last `<MOODLE>` block" is our 5.1.5 and
+    needs PHP 8.3.0. In this repo the last block is **5.2** (8.3.0); ours is
+    **5.1** (8.2.0). Same conclusion (8.4 not restricted), but cite the 5.1
+    block.
+  - The brief named `admin/cli/checks.php` as the environment checker. It is
+    NOT — it's the Check API (status/security/performance). The real
+    environment check is *Site administration → Server → Environment* or the
+    check `admin/cli/upgrade.php` / `install_database.php` run up front.
+    If it disagrees with the XML reading, the live checker wins.
+  - Moodle 5.1 router: `$CFG->routerconfigured` defaults false (URLs get a
+    `/r.php` prefix); set it true in the server `config.php` only after the
+    Nginx router rewrite exists. Look up the exact directive in the official
+    5.1 docs — not written down in this repo.
+  - Local DB is MariaDB 11.4, prod is 10.11.10: moving a dump prod-ward is a
+    downgrade — test on a scratch DB. How prod gets its first data (fresh
+    install vs. restore) is an OPEN decision recorded in `VPS_DEPLOYMENT.md`
+    §9. Backups and outbound SMTP are also unplanned.
+  - Do not disable root SSH login until key auth for `webnoah-aditya` is
+    confirmed; enable ufw only after allowing SSH. `git pull` on prod only
+    for changes already tested locally against Docker.
