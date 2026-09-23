@@ -3376,3 +3376,87 @@ asked to "beautify this side-bar". CSS only.
   - Do not disable root SSH login until key auth for `webnoah-aditya` is
     confirmed; enable ufw only after allowing SSH. `git pull` on prod only
     for changes already tested locally against Docker.
+
+## [2026-09-23] — Five small fixes: button CSS, admin menu placement, sample-CSV download, uniform quiz image size
+
+**What/why:** Batch of five small, user-requested fixes, all verified live in
+  the local Docker instance (not just read from source), per the project's
+  "verify, don't recall" rule.
+  1. **Illegible primary-button text (site-wide).** Root cause:
+     `theme_vrblms/style/custom.css:246`'s `a.btn:not(.vrb-hero__cta) {
+     color: inherit; }` has higher specificity than the earlier
+     `.btn-primary` rule that sets white text, so any `<a class="btn
+     btn-primary">` (e.g. `admin/user.php`'s "Add a new user") fell back to
+     inherited dark body text on the navy background. Fix: excluded
+     `.btn-primary`/`.btn-outline-primary` from that catch-all selector.
+     Reproduced and confirmed fixed live on `admin/user.php`.
+  2. **`local_vrbcontent`/`local_vrbcert` admin menu placement.** Both
+     registered their management page via `$ADMIN->add('reports', ...)`;
+     changed to `$ADMIN->add('courses', ...)` per the user's request (these
+     are content-authoring tools, not reports). Confirmed live: both now
+     appear under Site administration → Courses, gone from Reports.
+  3. **Sample CSV download in the content importer.** Added
+     `local_vrbcontent/sample.php?type=book|quiz` (capability-gated same as
+     the wizards, `send_file()`) serving bundled samples from a new
+     `local_vrbcontent/samples/` directory (moved in from `docs/temp docs/
+     sample-vrbcontent-*.csv`, written in an earlier session). Added
+     "Download sample CSV" buttons on the index page and on both wizards'
+     upload step. **Bug caught during verification, fixed before shipping:**
+     `sample.php` called `send_file()` without `require_once($CFG->libdir .
+     '/filelib.php')` first - threw "Call to undefined function
+     send_file()". Fixed by adding the require. (Also needed a full
+     `docker restart vrb-moodle`, not just `purge_caches.php`, to clear
+     Apache/mod_php's opcache after the fix - `purge_caches.php` only
+     purges Moodle's own MUC caches, not PHP opcode cache.)
+  4. **Uniform quiz question image size (800x450, 16:9).** Added CSS to
+     `theme_vrblms/style/custom.css`, scoped to quiz contexts only (not
+     Book). **Bug caught during verification, fixed before shipping:** the
+     first version targeted `.que img` broadly, which also matches quiz
+     chrome unrelated to question content - specifically
+     `.questionflagimage` (the small "Flag question" icon) - and blew it up
+     to an 800x450 box (visually: a huge black wavy shape on every question
+     page). Fixed by scoping to `.que .qtext img, .que .answer img, .que
+     .specificfeedback img` (the actual question stem/answer/feedback
+     content areas) instead of `.que img` alone. Reproduced both the bug
+     and the fix live via a real quiz attempt/preview with an uploaded test
+     image, confirmed the flag icon renders normally again and Book chapter
+     images are structurally unaffected (selector is scoped to
+     `body[id^="page-mod-quiz"]`/`#page-question-preview`, which a Book
+     page's `page-mod-book-view` body id can never match).
+  5. **Image-upload-error report ("Images must have valid URL", seen on the
+     VPS) — investigated, not fixed.** Reproduced the local image-upload
+     flow in Docker (file picker → TinyMCE `tiny_media` "Insert image"
+     dialog) end-to-end successfully, including via the actual quiz
+     question editor - no bug found locally. The error string is TinyMCE
+     core's own `imageurlrequired` ("An image must have a valid URL"),
+     thrown when Save is clicked before an upload has finished populating
+     the source field. Since this was only seen on the VPS and couldn't be
+     reproduced here, left as an open item - most likely cause is the VPS's
+     PHP-FPM `upload_max_filesize`/`post_max_size` or `moodledata`
+     permissions, both flagged as unverified in `VPS_DEPLOYMENT.md` §6 step
+     3. Needs live VPS access to chase further.
+**Files touched:** `public/theme/vrblms/style/custom.css` (button-text fix
+  + quiz-image-size CSS), `public/local/vrbcontent/settings.php`,
+  `public/local/vrbcert/settings.php` (admin category), `public/local/
+  vrbcontent/sample.php` (new), `public/local/vrbcontent/samples/
+  {book,quiz}_sample.csv` (new, moved from `docs/temp docs/`),
+  `public/local/vrbcontent/index.php`, `book_import.php`, `quiz_import.php`
+  (sample-download buttons), `public/local/vrbcontent/lang/en/
+  local_vrbcontent.php` (new strings), `public/local/vrbcontent/
+  version.php` (bumped), `public/local/vrbcert/version.php` (bumped).
+**Verification done:** all five items tested live in the browser against
+  the local Docker instance (`admin/cli/upgrade.php --non-interactive` +
+  `purge_caches.php` run after the version bumps); item 3's file-serving
+  bug and item 4's CSS-scoping bug were both caught by this live testing,
+  not left for the user to find. A test question (M1Q1) was temporarily
+  given a test image to verify items 3/5, then reverted to its original
+  text-only content afterward (now at question version v3, content
+  identical to the original v1).
+**Gotchas for future agents:** `purge_caches.php` does not reset PHP's own
+  opcode cache for the web server process (Apache/mod_php here) - if a
+  freshly-edited PHP file still throws an error that direct CLI testing
+  says it shouldn't, try a full container restart before assuming the
+  code is wrong. `.que img` alone is not a safe selector for "quiz question
+  content images" - it also catches the flag icon and any other small
+  chrome Moodle nests inside `.que`; scope to `.qtext`/`.answer`/
+  `.specificfeedback` instead.

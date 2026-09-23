@@ -163,9 +163,9 @@ if ($hassiteconfig) {
     }
 }
 
-// Management page (issue / preview / issued list) - under Site administration > Reports.
+// Management page (issue / preview / issued list) - under Site administration > Courses.
 // Access is gated by the 'local/vrbcert:manage' capability on the page itself.
-$ADMIN->add('reports', new admin_externalpage(
+$ADMIN->add('courses', new admin_externalpage(
     'local_vrbcert_manage',
     get_string('adminpageheading', 'local_vrbcert'),
     new moodle_url('/local/vrbcert/index.php'),

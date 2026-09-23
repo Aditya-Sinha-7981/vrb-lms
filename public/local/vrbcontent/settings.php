@@ -23,10 +23,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// Management page (Book/Quiz import wizards) - under Site administration > Reports,
-// matching local_vrbcert's placement. Access is gated by the
-// 'local/vrbcontent:import' capability on the page itself.
-$ADMIN->add('reports', new admin_externalpage(
+// Management page (Book/Quiz import wizards) - under Site administration > Courses,
+// alongside local_vrbcert (content-authoring tools, not reporting). Access is
+// gated by the 'local/vrbcontent:import' capability on the page itself.
+$ADMIN->add('courses', new admin_externalpage(
     'local_vrbcontent_import',
     get_string('adminpageheading', 'local_vrbcontent'),
     new moodle_url('/local/vrbcontent/index.php'),

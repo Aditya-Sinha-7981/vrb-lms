@@ -174,6 +174,11 @@ switch ($step) {
 
         echo $OUTPUT->header();
         echo $OUTPUT->heading(get_string('step4title', 'local_vrbcontent'));
+        $samplebookurl = new moodle_url('/local/vrbcontent/sample.php', ['type' => 'book']);
+        echo html_writer::div(
+            html_writer::link($samplebookurl, get_string('downloadsample', 'local_vrbcontent'), ['class' => 'btn btn-outline-primary btn-sm']),
+            'mb-3'
+        );
         $form->display();
         echo $OUTPUT->footer();
         break;

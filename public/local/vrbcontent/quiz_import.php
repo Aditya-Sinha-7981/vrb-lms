@@ -178,6 +178,11 @@ switch ($step) {
 
         echo $OUTPUT->header();
         echo $OUTPUT->heading(get_string('quizstep4title', 'local_vrbcontent'));
+        $samplequizurl = new moodle_url('/local/vrbcontent/sample.php', ['type' => 'quiz']);
+        echo html_writer::div(
+            html_writer::link($samplequizurl, get_string('downloadsample', 'local_vrbcontent'), ['class' => 'btn btn-outline-primary btn-sm']),
+            'mb-3'
+        );
         $form->display();
         echo $OUTPUT->footer();
         break;

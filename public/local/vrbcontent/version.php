@@ -2,6 +2,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_vrbcontent';
-$plugin->version = 2026090500;
+$plugin->version = 2026092300;
 $plugin->requires = 2025100600;
 $plugin->maturity = MATURITY_ALPHA;

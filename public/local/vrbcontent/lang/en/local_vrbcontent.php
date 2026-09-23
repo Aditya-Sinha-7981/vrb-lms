@@ -35,6 +35,9 @@ $string['importbook'] = 'Import Book content';
 $string['importbookdesc'] = 'Turn a structured product/knowledge CSV into Book chapters.';
 $string['importquiz'] = 'Import Quiz questions';
 $string['importquizdesc'] = 'Turn the fixed quiz CSV format into Moodle quiz questions.';
+$string['downloadsample'] = 'Download sample CSV';
+$string['downloadbooksample'] = 'Download sample Book CSV';
+$string['downloadquizsample'] = 'Download sample Quiz CSV';
 
 // Book wizard.
 $string['bookimporttitle'] = 'Import Book content';

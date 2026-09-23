@@ -35,20 +35,24 @@ echo $OUTPUT->heading(get_string('adminpageheading', 'local_vrbcontent'));
 echo html_writer::tag('p', get_string('indexintro', 'local_vrbcontent'));
 
 $bookurl = new moodle_url('/local/vrbcontent/book_import.php', ['step' => 'course', 'restart' => 1]);
+$booksampleurl = new moodle_url('/local/vrbcontent/sample.php', ['type' => 'book']);
 
 echo html_writer::start_tag('div', ['class' => 'card mb-3']);
 echo html_writer::start_tag('div', ['class' => 'card-body']);
 echo html_writer::tag('h3', html_writer::link($bookurl, get_string('importbook', 'local_vrbcontent')));
 echo html_writer::tag('p', get_string('importbookdesc', 'local_vrbcontent'));
+echo html_writer::link($booksampleurl, get_string('downloadbooksample', 'local_vrbcontent'), ['class' => 'btn btn-outline-primary btn-sm']);
 echo html_writer::end_tag('div');
 echo html_writer::end_tag('div');
 
 $quizurl = new moodle_url('/local/vrbcontent/quiz_import.php', ['step' => 'course', 'restart' => 1]);
+$quizsampleurl = new moodle_url('/local/vrbcontent/sample.php', ['type' => 'quiz']);
 
 echo html_writer::start_tag('div', ['class' => 'card mb-3']);
 echo html_writer::start_tag('div', ['class' => 'card-body']);
 echo html_writer::tag('h3', html_writer::link($quizurl, get_string('importquiz', 'local_vrbcontent')));
 echo html_writer::tag('p', get_string('importquizdesc', 'local_vrbcontent'));
+echo html_writer::link($quizsampleurl, get_string('downloadquizsample', 'local_vrbcontent'), ['class' => 'btn btn-outline-primary btn-sm']);
 echo html_writer::end_tag('div');
 echo html_writer::end_tag('div');
 

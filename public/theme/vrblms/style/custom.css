@@ -242,8 +242,13 @@ a:hover {
     color: inherit;
 }
 
-/* Buttons manage their own text colour — never inherit the navy link colour. */
-a.btn:not(.vrb-hero__cta) {
+/* Buttons manage their own text colour — never inherit the navy link colour.
+   Excludes .btn-primary/.btn-outline-primary: those set their own explicit
+   color (white-on-navy etc.) earlier in this file, and this selector's higher
+   specificity (element+class+:not) was clobbering it for any <a class="btn
+   btn-primary">, producing invisible navy-on-navy text (e.g. admin/user.php's
+   "Add a new user"). */
+a.btn:not(.vrb-hero__cta):not(.btn-primary):not(.btn-outline-primary) {
     color: inherit;
 }
 
@@ -3184,5 +3189,28 @@ body:has(.drawer.drawer-right.show)::after {
     margin-right: 0.5rem;
     color: var(--vrb-navy);
     opacity: 0.75;
+}
+
+/* Uniform image size/ratio for Quiz question CONTENT images only (attempt,
+   review, summary, and the question-preview popup) - 800x450 / 16:9,
+   cropped via object-fit so images of any source size/shape land in the
+   same box. Scoped to .qtext/.answer/.specificfeedback (the question stem,
+   MCQ/match answer options, and feedback text) - NOT ".que img" alone,
+   which also matches small UI chrome like the flag-question icon
+   (.questionflagimage) and blows it up to the same box. Deliberately
+   scoped to mod_quiz pages, not Book: Book chapter images (mod_book) keep
+   their natural size. */
+body[id^="page-mod-quiz"] .que .qtext img,
+body[id^="page-mod-quiz"] .que .answer img,
+body[id^="page-mod-quiz"] .que .specificfeedback img,
+#page-question-preview .que .qtext img,
+#page-question-preview .que .answer img,
+#page-question-preview .que .specificfeedback img {
+    width: 800px;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--vrb-r-control);
 }
 
