@@ -16,6 +16,6 @@ $THEME->removedprimarynavitems = ['myhome'];
 // the quiz-review score-ring banner (javascript/quizresult.js, style/
 // custom.css section 8) and the block-drawer hamburger menu
 // (javascript/blocksmenu.js, style/custom.css section 22).
-$THEME->javascripts_footer = ['quizresult', 'blocksmenu'];
+$THEME->javascripts_footer = ['quizresult', 'blocksmenu', 'bookscroll'];
 
 $THEME->doctype = 'html5';

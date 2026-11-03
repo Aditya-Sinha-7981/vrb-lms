@@ -61,3 +61,6 @@ jsconfig.json
 UPGRADING-CURRENT.md
 .phpunit.cache
 *.sql
+# VRB LMS: server-only / data files that must never be committed
+/public/.user.ini
+*.tar.gz

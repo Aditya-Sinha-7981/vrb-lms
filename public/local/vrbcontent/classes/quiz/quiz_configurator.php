@@ -96,6 +96,8 @@ class quiz_configurator {
         $quizdata->quizpassword = '';
         $quizdata->subnet = '';
         $quizdata->browsersecurity = '';
+        // All questions on one scrollable page (no repeated "Next").
+        $quizdata->questionsperpage = 0;
 
         if ($passpercent !== null) {
             $quizdata->attempts = $maxattempts ?? 0;

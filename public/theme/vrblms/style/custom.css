@@ -1574,12 +1574,19 @@ body#page-course-view-topics .course-section .activity-item {
     border-radius: var(--vrb-r-control);
     padding: 0.85rem 1rem;
     margin-bottom: 0.5rem;
-    transition: box-shadow 0.15s ease, transform 0.15s ease;
+    transition: box-shadow 0.15s ease;
 }
 
 body#page-course-view-topics .course-section .activity-item:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    transform: translateY(-1px);
+}
+
+/* No transform lift on hover: a transform creates a stacking context, so
+   the hovered card painted ABOVE an open "To do" completion dropdown from
+   the card before it. The card whose dropdown is open sits on top. */
+body#page-course-view-topics .course-section .activity-item:has(.dropdown-menu.show) {
+    position: relative;
+    z-index: 5;
 }
 
 body#page-course-view-topics .activity-item .activityname a,
@@ -3214,3 +3221,254 @@ body[id^="page-mod-quiz"] .que .specificfeedback img,
     border-radius: var(--vrb-r-control);
 }
 
+
+/* ============================================================
+   24. CONTENT OVERLAPS + MOBILE LAYOUT  (2026-11-03, pre-handoff)
+   Fixes found by a 375px + 1280px sweep of the employee pages:
+   - Book chapter prev/next arrows floated over the chapter text
+     (mod_book/styles.css makes #mod_book-chaptersnavigation sticky with a
+     -52px pull and, <=768px, pins it to "100% - 250px" over the content).
+   - Course-index toggle (fixed, top-left) sat on top of page titles.
+   - "Collapse all" ran into the "General" section title.
+   - Stacked padding (#page + .main-inner + section card + section-item)
+     left ~265px of a 375px screen for content.
+   - Leaderboard / My certificates tables pushed columns off-screen.
+   ============================================================ */
+
+/* --- Book: chapter arrows become a normal bar above the chapter (all widths) --- */
+body.path-mod-book #mod_book-chaptersnavigation {
+    position: static;
+    top: auto;
+    margin: 0 0 0.75rem;
+    z-index: auto;
+}
+
+body.path-mod-book #mod_book-chaptersnavigation .tertiary-navigation {
+    padding: 0;
+}
+
+body.path-mod-book #mod_book-chaptersnavigation .tertiary-navigation .navitem {
+    margin-bottom: 0;
+}
+
+body.path-mod-book .btn-previous,
+body.path-mod-book .btn-next {
+    background: var(--vrb-card);
+    border: 1px solid var(--vrb-border);
+    border-radius: var(--vrb-r-pill);
+    box-shadow: none;
+    opacity: 1;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vrb-navy);
+}
+
+body.path-mod-book .btn-previous .icon,
+body.path-mod-book .btn-next .icon {
+    font-size: 18px;
+}
+
+body.path-mod-book .book_content {
+    margin: 0;
+}
+
+/* --- Quiz attempt / review: no empty gutter left of the question card.
+   Moodle reserves a left margin on .que .content for its floated .info
+   box; section 8 already turns .info into a full-width header, so the
+   margin is just dead space (all widths). --- */
+body#page-mod-quiz-attempt .que .content,
+body#page-mod-quiz-review .que .content {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+@media (max-width: 767.98px) {
+    /* --- Less stacked padding so content gets the screen width --- */
+    #page.drawers {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    /* Out-specifies Moove's `.pagelayout-standard #page.drawers .main-inner`
+       / `body.limitedwidth #page.drawers .main-inner` (_drawers.scss). */
+    body.limitedwidth #page.drawers .main-inner,
+    body[class*="pagelayout-"] #page.drawers .main-inner {
+        padding: 16px 12px;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    body#page-course-view-topics .course-section.main {
+        padding: 0.5rem 0.75rem 0.75rem;
+    }
+
+    body#page-course-view-topics .course-section .section-item {
+        padding: 0;
+        border: 0;
+    }
+
+    body#page-course-view-topics .course-section .activity-item {
+        padding: 0.7rem 0.75rem;
+    }
+
+    /* --- Course-index toggle: off the titles, into the bottom-left corner --- */
+    .drawer-toggles .drawer-toggler.drawer-left-toggle {
+        top: auto !important;
+        bottom: 1rem;
+        left: 0.75rem;
+        z-index: 1020;
+    }
+
+    .drawer-toggles .drawer-left-toggle .btn {
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    }
+
+    /* --- "Collapse all" gets its own line instead of colliding with the title --- */
+    .course-section-header.d-flex {
+        flex-wrap: wrap;
+    }
+
+    .course-section-header:has(#collapsesections) > .flex-fill:has(#collapsesections) {
+        order: -1;
+        flex: 1 0 100% !important; /* beats Bootstrap's .flex-fill !important */
+        margin: 0 0 0.25rem !important;
+    }
+
+    .course-section .sectionname {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    /* --- Book: TOC block and content full width --- */
+    body.path-mod-book .book_content {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    /* --- Quiz attempt / review: tighter question cards --- */
+    body#page-mod-quiz-attempt .que .formulation,
+    body#page-mod-quiz-review .que .formulation {
+        padding: 1rem;
+    }
+
+    body#page-mod-quiz-attempt .que .qtext {
+        font-size: 1.1rem;
+    }
+
+    /* --- Leaderboard: keep #, Employee, Score, Modules on screen --- */
+    .vrb-lb-table th:nth-child(3),
+    .vrb-lb-table td:nth-child(3),
+    .vrb-lb-table th:nth-child(6),
+    .vrb-lb-table td:nth-child(6) {
+        display: none;
+    }
+
+    .vrb-lb-table thead th,
+    .vrb-lb-table tbody td {
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
+    }
+
+    .vrb-lb-table thead th {
+        font-size: 0.65rem;
+        letter-spacing: 0;
+    }
+
+    .vrb-lb-table {
+        font-size: 0.88rem;
+    }
+
+    .vrb-lb-table .vrb-lb-avatar {
+        display: none;
+    }
+
+    /* --- My certificates: one card per certificate instead of a wide table --- */
+    table.vrbcert-mycerts thead {
+        display: none;
+    }
+
+    table.vrbcert-mycerts,
+    table.vrbcert-mycerts tbody {
+        display: block;
+        width: 100%;
+    }
+
+    table.vrbcert-mycerts tbody tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.35rem 1rem;
+        padding: 0.9rem 0;
+        border-bottom: 1px solid var(--vrb-border);
+    }
+
+    table.vrbcert-mycerts tbody td {
+        display: block;
+        padding: 0;
+        border: 0;
+    }
+
+    table.vrbcert-mycerts tbody td.c0 {
+        grid-column: 1 / -1;
+        font-weight: 600;
+        color: var(--vrb-navy);
+    }
+
+    table.vrbcert-mycerts tbody td.c1::before { content: "Period: "; color: var(--vrb-muted); }
+    table.vrbcert-mycerts tbody td.c2::before { content: "Rank: "; color: var(--vrb-muted); }
+    table.vrbcert-mycerts tbody td.c3::before { content: "Score: "; color: var(--vrb-muted); }
+    table.vrbcert-mycerts tbody td.c4::before { content: "Issued: "; color: var(--vrb-muted); }
+
+    table.vrbcert-mycerts tbody td.c4,
+    table.vrbcert-mycerts tbody td.c5 {
+        grid-column: 1 / -1;
+    }
+}
+
+/* ============================================================
+   25. BOOK — ALL CHAPTERS ON ONE SCROLLING PAGE
+   javascript/bookscroll.js loads every chapter into the page and adds
+   body.vrb-book-allchapters once that has worked; until then (or if it
+   fails) Moodle's normal one-chapter page with arrows is shown.
+   ============================================================ */
+body.vrb-book-allchapters #mod_book-chaptersnavigation {
+    display: none;
+}
+
+body.vrb-book-allchapters .vrb-book-chapter {
+    scroll-margin-top: 140px; /* clear the fixed navbar + secondary nav */
+}
+
+body.vrb-book-allchapters .vrb-book-chapter + .vrb-book-chapter {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--vrb-border);
+}
+
+/* ============================================================
+   26. NO "SQUASHED PAGE" FLASH ON PHONES/TABLETS WHILE LOADING
+   The course-index drawer preference defaults to open, so the server
+   renders #page.drawers.show-drawer-left, and Moove sizes that as
+   width: calc(100% - 285px) at EVERY width (moove/_drawers.scss) — on a
+   375px phone the page is ~90px wide until theme_boost/drawers JS runs
+   and closes the drawer (it always closes drawers on small screens).
+   Below Bootstrap's lg breakpoint Boost's drawers are overlays anyway,
+   so #page should never give up width for them.
+   ============================================================ */
+@media (max-width: 991.98px) {
+    #page.drawers.show-drawer-left,
+    #page.drawers.show-drawer-right,
+    #page.drawers.show-drawer-left.show-drawer-right {
+        width: 100%;
+    }
+}

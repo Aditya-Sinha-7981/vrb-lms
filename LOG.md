@@ -3460,3 +3460,173 @@ asked to "beautify this side-bar". CSS only.
   content images" - it also catches the flag icon and any other small
   chrome Moodle nests inside `.que`; scope to `.qtext`/`.answer`/
   `.specificfeedback` instead.
+
+## [2026-10-18] — V2: course completion certificates + leaderboard counts unattempted quizzes
+**Agent:** Claude Code
+**What:** Two changes from the V2 client list.
+  1. **Leaderboard scoring fix (`local_vrblms`).** The ranking strategies
+     averaged only the quizzes an employee had attempted, so Rajesh Sharma
+     (1 of 2 Veeba quizzes, 100%) ranked above Priya Gupta (both Wok Tok
+     quizzes, 75%) on Overall, and every employee was measured out of all
+     6 quizzes across brands. New setting `local_vrblms/unattemptedpolicy`:
+     `zero` (default) counts unattempted quizzes as 0%; `ignore` keeps the
+     old average. Overall now scores each employee against their own
+     brands' quizzes only (`build_ranked_rows()` takes an optional
+     per-user quiz map). `get_quizzes_for_courses()` now excludes hidden
+     or mid-deletion quizzes. Removed the now-unused
+     `attempt_repository::get_all_brand_quizzes()`.
+  2. **Course completion certificates (`local_vrbcert`).** The user's
+     reading of client item #4: a certificate whenever an employee
+     completes a course. "Complete" = every visible quiz in the brand
+     course has a passing final grade (`quiz_grades.grade >=
+     grade_items.gradepass`), via new `api::get_course_progress()` and
+     `api::get_brand_courses()`. Moodle course-completion criteria are not
+     used (checked: none configured on any course). New
+     `completion_issuer` (observer on quiz `attempt_graded`, `attempt_regraded`,
+     `attempt_manual_grading_completed`; `'internal' => false`), daily
+     catch-up task (enabled), admin "Issue for existing completions" button
+     and "Preview completion certificate". Same table/PDF engine/My
+     certificates page; stored as `brandkey='course_<id>'`,
+     `track='completion'`, `period='completion'`. New settings:
+     `completion_enabled`, `completion_certtitle`, `completion_bodyline1/2`
+     (`{coursename}` placeholder).
+  3. Fixed an existing PDF layout bug: the footer reference line sat on the
+     inner border rule (moved from `PAGE_H - 20` to `PAGE_H - 26`). The 19
+     certificates already issued keep the old stored PDF until re-issued.
+**Files touched:** `public/local/vrblms/{version.php, settings.php,
+  lang/en/local_vrblms.php, classes/api.php, classes/local/attempt_repository.php,
+  classes/ranking/{attempt_selection_strategy,strategy_manager,ranking_strategy}.php}`;
+  `public/local/vrbcert/{version.php, settings.php, index.php, mycertificates.php,
+  lang/en/local_vrbcert.php, db/events.php (new), db/tasks.php,
+  classes/completion_issuer.php (new), classes/task/issue_completion_certificates.php (new),
+  classes/{certificate_data,certificate_generator,template,issued_certificate}.php}`;
+  `docs/ARCHITECTURE.md` (certificates section).
+**Verification done:** `php -l` on every touched file; `upgrade.php
+  --non-interactive` → both plugins `++ Success ++`, new setting defaults
+  applied (`unattemptedpolicy=zero`, `completion_enabled=1`). Leaderboard
+  before/after via a CLI script: Veeba Rajesh 100% → 50%; Overall #1
+  Rajesh → Priya, single-brand employees now `x/2` not `x/6`, Kavita Yadav
+  (3 brands) `0/6`; flipping to `ignore` reproduced the exact baseline.
+  Completion end-to-end with a throwaway employee in `brand_veeba`, taking
+  real attempts through the quiz engine (`process_submitted_actions` →
+  `process_submit` → `process_grade_submission`, so the real event fired):
+  fail Q1 → 0 certs; pass Q1 → 1/2, 0 certs; pass Q2 → 2/2, 1 cert issued
+  instantly (score 100); sweep → 0 issued / 1 held; re-call → `exists`.
+  Read the PDF (Veeba band, completion wording, course name). In the
+  browser as that user (temporarily given Manager): My certificates row
+  shows "Course completion"; admin page section renders, button reports
+  "0 issued, 1 already held", completion filter lists it; Overall
+  leaderboard shows the new ranking. Test user, its attempts and its
+  certificate then deleted; issued count back to the original 19.
+**Gotchas for future agents:**
+  - Quiz grading in 5.1 is `process_submit()` then `process_grade_submission()`;
+    `attempt_graded` (not `attempt_submitted`) is the event fired after
+    `quiz_grades` is updated. Observe that one.
+  - The client's original wording was "certificate only after completing
+    all brands". The user interpreted it as per-course completion. If
+    the client really meant an all-brands gate on the top-performer
+    tracks, that is still unbuilt.
+  - Not committed.
+
+## [2026-11-03] — Rewrote `VPS_DEPLOYMENT.md` for the real aaPanel server + quick-commands section
+**Agent:** Claude Code
+**What:** The 2026-09-20 plan assumed `/var/www/vrb-lms`, `www-data`, plain
+  `php`. The actual VPS (per `docs/VRB_LMS_VPS_Deployment_Troubleshooting.md`)
+  is aaPanel: site root `/www/wwwroot/learning.vrbconsumer.com`, docroot
+  `.../public`, PHP `/www/server/php/84/bin/php`, user `www`, moodledata
+  `/www/moodledata`. Rewrote the doc around those values; added §4 one-time
+  setup (check whether the site root is a git checkout, deploy key, migration
+  to a git checkout if not, ownership model, cron, FPM reload), §5 local-vs-
+  server differences (files, DB-held settings/content that git doesn't carry,
+  env differences), §7 quick commands (deploy, backup, rollback, cron, health,
+  logs, users), §8 notes for the pending V2 deploy (DB upgrade; leaderboard
+  ranking change; completion certificates will be issued to all employees who
+  have already completed once cron runs). Added `/public/.user.ini` and
+  `*.tar.gz` to `.gitignore` (`moodledata.tar.gz` in the repo root was
+  untracked and not ignored).
+**Not verified (no server access this session):** whether the server site root
+  is a git checkout; the PHP-FPM reload command name (`/etc/init.d/php-fpm-84`
+  is aaPanel's usual one); aaPanel log paths. All marked UNVERIFIED in the doc.
+  Verified locally: `admin/cli/maintenance.php` `--enable/--disable`,
+  `scheduled_task.php --list/--execute`, the task class name.
+**Files touched:** `VPS_DEPLOYMENT.md`, `.gitignore`, `LOG.md`.
+
+## [2026-11-03] — Quiz questions on one scrolling page + content-overlap / mobile fixes
+**Agent:** Claude Code
+**What:**
+  1. **All quiz questions on one page** (client: no repeated "Next").
+     New `local_vrbcontent/db/upgrade.php` step (version 2026110300): sets
+     site default `quiz | questionsperpage = 0`, and for every existing quiz
+     sets `quiz.questionsperpage = 0` + `quiz_repaginate_questions($id, 0)`.
+     Importer (`quiz_configurator::create`) now sets `questionsperpage = 0`
+     explicitly (it already landed on one page implicitly). Runs on prod
+     automatically via `upgrade.php` at deploy.
+     Core's quiz edit UI refuses to repaginate once a quiz has attempts;
+     bypassed deliberately because it is a UI guard, not a data one: each
+     attempt stores its own `quiz_attempts.layout` (`mod_quiz\quiz_attempt`
+     builds pages from it) and reports/regrades are slot-based. Verified:
+     existing attempts kept layout `1,0,2,0,3,0,4,0`; **in-progress attempts
+     started before the deploy keep one-question-per-page until finished**;
+     new attempts get all questions + a single "Finish attempt" button.
+  2. **Overlaps + mobile** — `theme_vrblms/style/custom.css` new section 24.
+     Book chapter prev/next arrows no longer float over chapter text
+     (mod_book makes them sticky with a negative pull; now a normal bar
+     above the chapter, all widths). Course-index toggle moved from top-left
+     (covered page titles) to a bottom-left round button on <=767px.
+     "Collapse all" on its own line (was overlapping "General"; needed
+     `!important` to beat Bootstrap's `.flex-fill`). Less stacked padding on
+     phones (Moove's `.main-inner` rule needs `body.limitedwidth #page.drawers
+     .main-inner` specificity to override). Leaderboard on phones hides
+     Location/Time + avatars so the table fits; My certificates becomes one
+     card per certificate. Quiz attempt/review: removed the empty left gutter
+     Moodle reserves for the floated .info (all widths).
+**Verification:** live in Chrome as employee `kavitayadav`, at 375px (pages
+  loaded in a same-origin 375px iframe since the Chrome window won't go below
+  ~460px) and 1280px: My courses, course page, book, quiz view, quiz attempt,
+  leaderboard, My certificates, profile, grades — no document-level
+  horizontal overflow on any; all four leaderboard tables fit (301/301).
+  Started one fresh attempt on quiz 5 as kavitayadav to see the new layout,
+  then deleted it with `quiz_delete_attempt()` (attempt 16).
+**Files touched:** `public/local/vrbcontent/db/upgrade.php` (new),
+  `public/local/vrbcontent/version.php`, `public/local/vrbcontent/classes/
+  quiz/quiz_configurator.php`, `public/theme/vrblms/style/custom.css`.
+**Not checked:** login page and admin screens on mobile; real iOS/Android
+  devices (only Chrome at 375px).
+
+## [2026-11-03] — In-progress quiz attempts, book chapters on one page, To-do dropdown, load-time layout flash
+**Agent:** Claude Code
+**What:**
+  1. **In-progress attempts → one page.** The earlier step only repaginated
+     quizzes; attempts already started keep their own `quiz_attempts.layout`
+     (user hit this on attempt 9). New upgrade step `local_vrbcontent`
+     2026110301: for `inprogress`/`overdue` attempts on single-section
+     quizzes, layout → same slots in the same order + one trailing `,0`,
+     `currentpage = 0`. Finished attempts untouched. Verified attempt 9:
+     4 questions + "Finish attempt", no Next.
+  2. **Book: all chapters on one scrolling page.** `mod/book/view.php`
+     echoes one chapter directly (no renderer to override). New
+     `theme_vrblms/javascript/bookscroll.js` (added to
+     `$THEME->javascripts_footer`): reads the TOC block, fetches each other
+     chapter's normal view.php page and inserts its `#mod_book-chapter` box
+     in TOC order, hides the prev/next arrows, TOC links scroll in-page.
+     Falls back to Moodle's normal page on any failure. CSS section 25.
+     Verified: 15/15 chapters in order, TOC click scrolls to the chapter.
+     Each fetch logs the normal chapter-viewed event.
+  3. **"To do" completion dropdown hidden under the next activity card.**
+     Cause: the activity card hover lift (`transform: translateY(-1px)`)
+     creates a stacking context, so the hovered next card painted over the
+     open menu. Removed the transform (shadow only) + the card with an open
+     dropdown gets `z-index: 5`. Reproduced and verified with real mouse hover.
+  4. **Layout "distorted for a while" on page load (mobile).** Two causes:
+     (a) The course-index drawer pref defaults to open, so the server
+     renders `#page.show-drawer-left`, and Moove sizes that
+     `width: calc(100% - 285px)` at all widths → ~90px-wide page on a phone
+     until boost's drawers JS closes it. Fixed: CSS section 26, full width
+     below 992px. (b) After every `purge_caches.php`, theme CSS is rebuilt on
+     first request and `theme/styles.php` serves a fallback sheet meanwhile
+     (very visible locally today because caches were purged many times).
+     Fix is operational: run `admin/cli/build_theme_css.php --themes=vrblms`
+     after purging — added to `VPS_DEPLOYMENT.md` §7.1.
+**Files touched:** `public/local/vrbcontent/{db/upgrade.php, version.php}`,
+  `public/theme/vrblms/{config.php, javascript/bookscroll.js (new),
+  style/custom.css}`, `VPS_DEPLOYMENT.md`, `LOG.md`.
