@@ -73,7 +73,7 @@ Local dev is unchanged: Docker, containers `vrb-moodle` + `vrb-moodle-db`
 
 ### Done (from the troubleshooting record)
 - [x] Moodle files, DB and `config.php` in place; env check and upgrade check pass.
-- [x] `max_input_vars = 5000` (CLI + FPM).
+- [ ] `max_input_vars`: **NOT set in the server's PHP config** (decision 2026-11-03 — the system ini files are left untouched). Every Moodle CLI command passes `-d max_input_vars=5000` instead, via `$PHP` (§7, §7.9).
 - [x] `open_basedir` fixed in `public/.user.ini` to include `/www/moodledata/`.
 - [x] Nginx vhost serves Moodle (HTTP → Moodle's redirect to HTTPS works).
 - [x] ufw allows 80/443.
@@ -171,7 +171,7 @@ permissions" on the site and changes the owner back to `www`, re-run this.
 ### Step 4 — cron (required: certificates and cohort sync run from it)
 aaPanel → Cron → Add task → Shell script, every 1 minute, run as `www`:
 ```bash
-/www/server/php/84/bin/php /www/wwwroot/learning.vrbconsumer.com/admin/cli/cron.php >/dev/null 2>&1
+/www/server/php/84/bin/php -d max_input_vars=5000 /www/wwwroot/learning.vrbconsumer.com/admin/cli/cron.php >/dev/null 2>&1
 ```
 or `sudo crontab -u www -e` with `* * * * * <that command>`. Confirm with
 `checks.php` (§7.5) — the "Cron running" warning should clear.
@@ -257,39 +257,54 @@ production → move to feature branch → review → merge before deploy.
 
 ## 7. Quick commands
 
-All commands on the VPS, as `webnoah-aditya`. Set these first in each SSH session:
+All commands on the VPS, as `webnoah-aditya`. Set these first in **every**
+SSH session — `$PHP` carries the `max_input_vars` override, so every Moodle
+command below gets it automatically (§7.9). Use `$PHP` unquoted, exactly as
+written:
 ```bash
 ssh webnoah-aditya@66.116.253.207
 cd /www/wwwroot/learning.vrbconsumer.com
-PHP=/www/server/php/84/bin/php
+PHP="/www/server/php/84/bin/php -d max_input_vars=5000"
+$PHP -r 'echo "max_input_vars=", ini_get("max_input_vars"), PHP_EOL;'   # must print 5000
 ```
+`PHP Warning: Module "zip" is already loaded` on every command is harmless
+(zip is listed twice in the CLI ini; §7.9) — ignore it.
 
 ### 7.1 Routine update (the normal deploy)
 ```bash
+# 0. Pre-flight — the line above must have printed 5000; if it printed
+#    1000, $PHP was set without the -d flag (new SSH session?) — set it again.
+
 # 1. What's about to change?
 git fetch origin
 git log --oneline HEAD..origin/main             # commits coming in
 git diff --stat HEAD..origin/main               # files coming in
 git diff --name-only HEAD..origin/main | grep version.php   # any → DB upgrade needed → backup first (7.2)
-git status                                       # must show no modified tracked files
+git status --short                               # no " M" lines (modified tracked files)
 
 # 2. Backup if any version.php changed (see 7.2)
 
-# 3. Deploy
+# 3. Deploy — chained with && so a failure STOPS here and leaves
+#    maintenance mode ON (never re-open the site on a half-done upgrade)
 PREV=$(git rev-parse HEAD); echo "rollback point: $PREV"
 sudo -u www $PHP admin/cli/maintenance.php --enable
-git pull --ff-only origin main                   # refuses instead of making a mess
-sudo -u www $PHP admin/cli/upgrade.php --non-interactive
-sudo -u www $PHP admin/cli/purge_caches.php
-sudo -u www $PHP admin/cli/build_theme_css.php --themes=vrblms   # pre-build CSS (see note below)
-sudo /etc/init.d/php-fpm-84 reload               # confirm the name once (§4 step 5)
-sudo -u www $PHP admin/cli/maintenance.php --disable
+git pull --ff-only origin main \
+  && sudo -u www $PHP admin/cli/upgrade.php --non-interactive \
+  && sudo -u www $PHP admin/cli/purge_caches.php \
+  && sudo -u www $PHP admin/cli/build_theme_css.php --themes=vrblms \
+  && sudo /etc/init.d/php-fpm-84 reload \
+  && sudo -u www $PHP admin/cli/maintenance.php --disable
+# If it stopped: read the error, fix it, re-run from the failed command.
+# The site stays in maintenance mode until --disable runs.
 
 # 4. Check
+sudo -u www $PHP admin/cli/upgrade.php --non-interactive  # "No upgrade needed"
 sudo -u www $PHP admin/cli/checks.php            # Environment/Upgrade must be OK
 # then open the site, log in, check the feature you changed
 # then apply any by-hand admin settings from the deploy notes (§5.2)
 ```
+PHP-FPM reload command confirmed on the box 2026-11-03: `/etc/init.d/php-fpm-84`.
+
 For a CSS/template-only change (no `version.php` bumped), you can skip
 maintenance mode and the backup: `git pull --ff-only` → `purge_caches.php` →
 `build_theme_css.php --themes=vrblms` → FPM reload.
@@ -366,6 +381,36 @@ upload) is done in the web UI — see `docs/CSV_IMPORT_SPEC.md`.
 git status --short          # " M" lines = someone edited code on the server → stop
 git log --oneline -1        # compare with your Mac's: git log --oneline -1 origin/main
 ```
+
+### 7.9 Known server gotcha: `max_input_vars` on the CLI
+Moodle's environment check (run by `upgrade.php` and `checks.php`) requires
+`max_input_vars >= 5000`. On this server both
+`/www/server/php/84/etc/php-cli.ini:425` and `php.ini:426` read
+`;max_input_vars = 5000` — the leading `;` makes it a comment, so PHP uses
+its default **1000**. On the 2026-11-03 deploy this made `upgrade.php` abort
+while the (then unchained) commands carried on and re-opened the site with
+code ahead of the DB; recovered by re-running the upgrade with the override.
+(Same root issue as the initial setup:
+`docs/VRB_LMS_VPS_Deployment_Troubleshooting.md` §5.)
+
+**Decision (user, 2026-11-03): do NOT edit the server's PHP ini files.**
+Instead every CLI command uses
+`PHP="/www/server/php/84/bin/php -d max_input_vars=5000"` (§7 setup), the
+cron line passes the same `-d` flag (§4 step 4), and the deploy chain uses
+`&&` so any failure leaves maintenance mode on.
+
+Also in those files: `extension = zip.so` appears twice (CLI lines
+1850/1853, php.ini 1851/1854) → `PHP Warning: Module "zip" is already
+loaded` on every command. Harmless; left as is by the same decision.
+
+**Web side (PHP-FPM):** `php.ini` has the same commented line, so web
+requests most likely also run with 1000. The site works, but Moodle forms
+with more than 1000 fields (big role-permission or grading screens) could
+be silently cut off. Check at Site administration → Server → Environment.
+If it's red and a fix is wanted without touching the system ini, the
+site-only option is `max_input_vars = 5000` in
+`public/.user.ini` (aaPanel makes that file immutable: `chattr -i`, edit,
+`chattr +i`; PHP re-reads it within `user_ini.cache_ttl`, 300 s default).
 
 ---
 

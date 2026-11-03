@@ -778,13 +778,16 @@ body#page-login-index .login-languagemenu {
     margin-right: 0.5rem;
 }
 
-/* --- Distraction-free canvas --- */
+/* --- Distraction-free canvas ---
+   Only the course-index drawer (and its toggles) is removed. The primary
+   drawer (the phone menu behind the navbar's left hamburger) and the
+   block drawer (right hamburger) stay usable: hiding them while their
+   navbar buttons stayed visible made a tap show only the grey backdrop
+   with nothing in it (2026-11-03). Neither is force-opened here, so the
+   page still starts with no drawer open. */
 body#page-mod-quiz-attempt #theme_boost-drawers-courseindex,
-body#page-mod-quiz-attempt #theme_boost-drawers-primary,
-body#page-mod-quiz-attempt #theme_boost-drawers-blocks,
 body#page-mod-quiz-attempt .drawer-toggles,
 body#page-mod-quiz-attempt .drawer-toggler,
-body#page-mod-quiz-attempt .btn.drawertoggle,
 body#page-mod-quiz-attempt .tertiary-navigation,
 body#page-mod-quiz-attempt .activity-navigation {
     display: none !important;
@@ -998,11 +1001,8 @@ body#page-mod-quiz-attempt .mod_quiz-next-nav.btn-primary:focus {
    no course-index or quiz-navigation rail. "Finish review" still works —
    there is a second one at the end of the page content, styled below. */
 body#page-mod-quiz-review #theme_boost-drawers-courseindex,
-body#page-mod-quiz-review #theme_boost-drawers-primary,
-body#page-mod-quiz-review #theme_boost-drawers-blocks,
 body#page-mod-quiz-review .drawer-toggles,
 body#page-mod-quiz-review .drawer-toggler,
-body#page-mod-quiz-review .btn.drawertoggle,
 body#page-mod-quiz-review .tertiary-navigation,
 body#page-mod-quiz-review .activity-navigation {
     display: none !important;

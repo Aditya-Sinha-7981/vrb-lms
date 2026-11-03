@@ -3630,3 +3630,55 @@ asked to "beautify this side-bar". CSS only.
 **Files touched:** `public/local/vrbcontent/{db/upgrade.php, version.php}`,
   `public/theme/vrblms/{config.php, javascript/bookscroll.js (new),
   style/custom.css}`, `VPS_DEPLOYMENT.md`, `LOG.md`.
+
+## [2026-11-03] — Prod deploy: upgrade.php aborted on max_input_vars (CLI back at 1000)
+**What:** Deployed `5a65f6a0` to the VPS. `git pull` fine, but
+  `admin/cli/upgrade.php` aborted at the environment check
+  ("max_input_vars must be at least 5000") and the unchained deploy commands
+  continued and disabled maintenance mode → site live with new code, DB
+  upgrade pending. Same root issue as the 2026-09 setup
+  (`docs/VRB_LMS_VPS_Deployment_Troubleshooting.md` §5): CLI reads
+  `/www/server/php/84/etc/php-cli.ini`; it had been fixed to 5000 then, now
+  reads 1000 again (likely aaPanel rewrote the file; a new `Module "zip" is
+  already loaded` warning appeared too). Recovery given to the user: re-run
+  upgrade with `php -d max_input_vars=5000` inside maintenance mode, chained
+  with `&&`. Root-cause diagnostics (`php --ini`, grep of both ini files)
+  pending the user's output.
+**Docs:** `VPS_DEPLOYMENT.md` §7.1 rewritten: pre-flight max_input_vars
+  check, `-d max_input_vars=5000` on upgrade/cron, `&&` chain so a failure
+  leaves maintenance ON; new §7.9 explains the gotcha. Also on prod:
+  cron has never run (checks.php: 43 days), ad hoc queue 43 days old.
+  **Update (same day):** upgrade re-run with `-d max_input_vars=5000` in
+  maintenance mode → `local_vrbcert`, `local_vrbcontent`, `local_vrblms`
+  `++ Success ++`, new settings defaulted, "No upgrade needed" after; site
+  back (303). Root cause confirmed: `;max_input_vars = 5000` commented out
+  in both `php-cli.ini` (line 425) and `php.ini` (426); duplicate
+  `extension = zip.so` in both. Permanent fix commands given to the user
+  (backup → uncomment → comment duplicate zip → FPM reload → verify);
+  not yet confirmed applied. Cron still not configured on prod.
+
+## [2026-11-03] — Quiz attempt/review: hamburger opened only a grey backdrop (mobile)
+**What:** On `mod-quiz-attempt` / `mod-quiz-review`, custom.css section 8/9
+  ("distraction-free canvas") set `display:none !important` on all three
+  drawers (`#theme_boost-drawers-primary`, `-courseindex`, `-blocks`) and on
+  `.btn.drawertoggle` (the in-drawer X), while the navbar's left hamburger
+  (`.navbar-toggler`, phone menu) and our right `.vrb-blocks-hamburger`
+  stayed visible → tapping opened an invisible drawer, only the backdrop
+  showed (reported on prod, attempt 19). Fix: only the course-index drawer
+  and its toggles are hidden now; primary + block drawers work normally
+  (neither is force-opened there: `data-forceopen` 0 / empty).
+**Verified:** local attempt 9 at ~425px: no drawer open on load; left
+  hamburger opens Home/My courses/Leaderboard/My certificates with a working
+  X; right hamburger opens Quiz navigation (question jump buttons) + Finish
+  attempt. `#page` not resized.
+**Files:** `public/theme/vrblms/style/custom.css`. CSS-only → deploy is
+  pull + purge + build_theme_css + FPM reload, no upgrade.
+
+## [2026-11-03] — Decision: server PHP ini stays untouched; CLI always gets -d max_input_vars=5000
+User declined the permanent `php-cli.ini`/`php.ini` edit. `VPS_DEPLOYMENT.md`
+§7 now sets `PHP="/www/server/php/84/bin/php -d max_input_vars=5000"` at the
+start of every SSH session (used unquoted, bash word-splits it), so every
+Moodle CLI command — upgrade, checks, purge, cron — carries the override;
+§3 server state corrected (max_input_vars is NOT set server-side); §7.9
+rewritten (cause, decision, harmless zip warning, web-side note with a
+site-only `public/.user.ini` option if the Environment page shows red).
