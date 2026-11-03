@@ -5,7 +5,7 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * A ranking strategy turns one employee's raw finished quiz attempts, for
- * the quizzes belonging to a single brand, into a single comparable score.
+ * the quizzes they are expected to take, into a single comparable score.
  *
  * Implementations must not assume every quiz in $quizmeta has an attempt —
  * an employee who hasn't started (or only partially finished) their

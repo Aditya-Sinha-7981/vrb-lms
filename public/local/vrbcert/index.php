@@ -34,7 +34,7 @@ $baseurl = new moodle_url('/local/vrbcert/index.php');
 
 // --- Preview: stream a sample PDF, no storage --------------------------
 if ($action === 'preview') {
-    $pdf = \local_vrbcert\certificate_generator::preview();
+    $pdf = \local_vrbcert\certificate_generator::preview(optional_param('type', 'perbrand', PARAM_ALPHA));
     send_file($pdf, 'vrbcert-preview.pdf', 0, 0, true, false, 'application/pdf');
     exit;
 }
@@ -81,6 +81,12 @@ if ($action === 'issue' && confirm_sesskey() && data_submitted()) {
     $issuesummary = \local_vrbcert\issuer::run($period !== '' ? $period : null, $USER->id, $reissue, $scope);
 }
 
+// --- Catch-up issuance of course-completion certificates ------------
+$completionsummary = null;
+if ($action === 'issuecompletion' && confirm_sesskey() && data_submitted()) {
+    $completionsummary = \local_vrbcert\completion_issuer::run($USER->id);
+}
+
 // --- Filters for the issued list ----------------------------------
 $filterperiod = optional_param('fperiod', '', PARAM_TEXT);
 $filterbrand = optional_param('fbrand', '', PARAM_TEXT);
@@ -115,7 +121,7 @@ echo $OUTPUT->box(
         ) . ' &nbsp;|&nbsp; ' .
         html_writer::link(
             new moodle_url($baseurl, ['action' => 'preview']),
-            get_string('previewcertificate', 'local_vrbcert'),
+            get_string('previewtopperformer', 'local_vrbcert'),
             ['class' => 'btn btn-secondary btn-sm', 'target' => '_blank', 'rel' => 'noopener']
         )
     ),
@@ -126,11 +132,46 @@ if (empty($config->enabled)) {
     echo $OUTPUT->notification(get_string('issuancedisabled', 'local_vrbcert'), 'warn');
 }
 
-// Issue-now form.
+// Course completion certificates: status, preview, catch-up issuance.
+$completionon = \local_vrbcert\completion_issuer::is_enabled();
+echo html_writer::start_tag('form', ['method' => 'post', 'action' => $baseurl->out(false), 'class' => 'mb-4']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'issuecompletion']);
+echo html_writer::tag('h3', get_string('completionheading', 'local_vrbcert'));
+echo html_writer::tag('p', get_string($completionon ? 'completionstatus_on' : 'completionstatus_off', 'local_vrbcert'));
+echo html_writer::tag('p', get_string('issuecompletiondesc', 'local_vrbcert'), ['class' => 'text-muted']);
+$completionattrs = ['type' => 'submit', 'class' => 'btn btn-primary'];
+if (!$completionon) {
+    $completionattrs['disabled'] = 'disabled';
+}
+echo html_writer::tag('button', get_string('issuecompletion', 'local_vrbcert'), $completionattrs);
+echo ' ' . html_writer::link(
+    new moodle_url($baseurl, ['action' => 'preview', 'type' => \local_vrbcert\completion_issuer::TRACK]),
+    get_string('previewcompletion', 'local_vrbcert'),
+    ['class' => 'btn btn-secondary', 'target' => '_blank', 'rel' => 'noopener']
+);
+echo html_writer::end_tag('form');
+
+if ($completionsummary !== null) {
+    if (!empty($completionsummary['disabled'])) {
+        echo $OUTPUT->notification(get_string('completionstatus_off', 'local_vrbcert'), 'warn');
+    } else {
+        echo $OUTPUT->notification(get_string('completiondone', 'local_vrbcert', (object) [
+            'issued' => $completionsummary['issued'],
+            'skipped' => $completionsummary['skipped'],
+            'errors' => count($completionsummary['errors']),
+        ]), empty($completionsummary['errors']) ? 'success' : 'warn');
+        foreach ($completionsummary['errors'] as $error) {
+            echo html_writer::div(s($error), 'text-danger small');
+        }
+    }
+}
+
+// Issue-now form (top performers).
 echo html_writer::start_tag('form', ['method' => 'post', 'action' => $baseurl->out(false), 'class' => 'mb-4']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'issue']);
-echo html_writer::tag('h3', get_string('issuenow', 'local_vrbcert'));
+echo html_writer::tag('h3', get_string('topperformerheading', 'local_vrbcert'));
 echo html_writer::tag('p', get_string('issuenowdesc', 'local_vrbcert'), ['class' => 'text-muted']);
 
 // Scope: which track(s) / brand(s) to issue from this run.
@@ -218,10 +259,15 @@ foreach ($brands as $b) {
     $brandoptions[$b->idnumber] = $b->name;
 }
 $brandoptions['overall'] = get_string('overall', 'local_vrbcert');
+$brandoptions['track:' . \local_vrbcert\completion_issuer::TRACK] = get_string('filtercompletion', 'local_vrbcert');
 
 echo html_writer::start_tag('form', ['method' => 'get', 'action' => $baseurl->out(false), 'class' => 'form-inline mb-3']);
 $periodopts = ['' => get_string('allperiods', 'local_vrbcert')];
 foreach ($periods as $p) {
+    // Completion certificates share a fixed internal period - filter them via Brand / track instead.
+    if ($p === \local_vrbcert\completion_issuer::PERIOD) {
+        continue;
+    }
     $periodopts[$p] = $p;
 }
 echo html_writer::label(get_string('filterbyperiod', 'local_vrbcert'), 'fperiod', false, ['class' => 'mr-2']);
@@ -230,10 +276,13 @@ echo html_writer::label(get_string('filterbybrand', 'local_vrbcert'), 'fbrand', 
 echo html_writer::select($brandoptions, 'fbrand', $filterbrand, false, ['class' => 'mr-3', 'onchange' => 'this.form.submit()']);
 echo html_writer::end_tag('form');
 
-$records = \local_vrbcert\issued_certificate::get_all([
-    'period' => $filterperiod,
-    'brandkey' => $filterbrand,
-]);
+$listfilters = ['period' => $filterperiod];
+if (strpos($filterbrand, 'track:') === 0) {
+    $listfilters['track'] = substr($filterbrand, strlen('track:'));
+} else {
+    $listfilters['brandkey'] = $filterbrand;
+}
+$records = \local_vrbcert\issued_certificate::get_all($listfilters);
 
 if (!$records) {
     echo $OUTPUT->notification(get_string('nissued', 'local_vrbcert', 0), 'info');
@@ -279,7 +328,7 @@ if (!$records) {
             s($name),
             s($empcode),
             s($record->brandname) . ' / ' . s($record->track),
-            s($record->period),
+            s(\local_vrbcert\issued_certificate::period_label($record)),
             $record->certrank === null ? '' : s($record->certrank),
             $score,
             userdate($record->timecreated, get_string('strftimedatetimeshort', 'langconfig')),

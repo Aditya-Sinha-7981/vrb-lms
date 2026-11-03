@@ -197,6 +197,30 @@ Built as `public/local/vrbcert/` (see `LOG.md` 2026-09-02 and
 final qualification rule (the two-track Top-N defaults are placeholders),
 the certificate artwork, and the issuance cadence.
 
+**Third track: course completion certificates (added 2026-10-18, V2).**
+Separate from the top-performer tracks above — no ranking, no Top N, no
+award period. An employee gets one certificate per brand course the moment
+every visible quiz in that course has a passing final grade
+(`\local_vrblms\api::get_course_progress()`; Moodle's own course-completion
+criteria are NOT used — none are configured on the brand courses). Issued
+by `\local_vrbcert\completion_issuer` from an observer on the quiz
+`attempt_graded` / `attempt_regraded` / `attempt_manual_grading_completed`
+events (`'internal' => false`, so it runs after the grading transaction
+commits), plus a daily catch-up task (`issue_completion_certificates`,
+enabled) and an "Issue for existing completions" button. Stored in the same
+`local_vrbcert_issued` table as `brandkey = 'course_<id>'`,
+`track = 'completion'`, `period = 'completion'`. Own title/body settings;
+signatory and colours shared. Toggle: `local_vrbcert/completion_enabled`.
+
+**Leaderboard scoring change (same date).** `local_vrblms` now has a
+`unattemptedpolicy` setting. Default `zero`: unattempted quizzes count as
+0%, so the average covers every quiz the employee is expected to take
+(previously only attempted quizzes were averaged, so one 100% quiz outranked
+a fully-completed 95%). `ignore` restores the old behaviour. The Overall
+leaderboard now scores each employee against their OWN brands' quizzes
+only, not every brand's. Hidden quizzes (or quizzes being deleted) are
+excluded from both ranking and completion.
+
 ## Custom plugin architecture
 
 Three custom local/block/report plugins, each owning a distinct

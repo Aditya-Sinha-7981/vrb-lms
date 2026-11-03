@@ -38,17 +38,25 @@ class template {
     ];
 
     /**
+     * @param string $track 'completion' uses the completion wording; anything
+     *        else uses the top-performer wording.
      * @return \stdClass render spec: title, presentedto, bodyline1, bodyline2,
      *         signatoryname, signatorytitle, accentcolour (hex).
      */
-    public static function get_spec(): \stdClass {
+    public static function get_spec(string $track = ''): \stdClass {
         $config = get_config('local_vrbcert');
+        // Completion certificates have their own title and body settings;
+        // presented-to, signatory and colours are shared.
+        $prefix = $track === completion_issuer::TRACK ? 'completion_' : '';
 
         $spec = new \stdClass();
-        $spec->title = self::setting($config, 'certtitle', get_string('certtitle_default', 'local_vrbcert'));
+        $spec->title = self::setting($config, $prefix . 'certtitle',
+            get_string($prefix . 'certtitle_default', 'local_vrbcert'));
         $spec->presentedto = self::setting($config, 'presentedto', get_string('presentedto_default', 'local_vrbcert'));
-        $spec->bodyline1 = self::setting($config, 'bodyline1', get_string('bodyline1_default', 'local_vrbcert'));
-        $spec->bodyline2 = self::setting($config, 'bodyline2', get_string('bodyline2_default', 'local_vrbcert'));
+        $spec->bodyline1 = self::setting($config, $prefix . 'bodyline1',
+            get_string($prefix . 'bodyline1_default', 'local_vrbcert'));
+        $spec->bodyline2 = self::setting($config, $prefix . 'bodyline2',
+            get_string($prefix . 'bodyline2_default', 'local_vrbcert'));
         $spec->signatoryname = self::setting($config, 'signatoryname', get_string('signatoryname_default', 'local_vrbcert'));
         $spec->signatorytitle = self::setting($config, 'signatorytitle', get_string('signatorytitle_default', 'local_vrbcert'));
         $spec->accentcolour = self::colour(self::setting($config, 'accentcolour', '#000B43'), '#000B43');
@@ -104,7 +112,8 @@ class template {
         $rank = $d->rank === null ? '' : (string) $d->rank;
         $replacements = [
             '{fullname}' => $d->fullname,
-            '{brandname}' => self::brand_label($d->brandkey, $d->brandname),
+            '{brandname}' => self::brand_label($d->brand_for_display(), $d->brandname_for_display()),
+            '{coursename}' => $d->coursename,
             '{empcode}' => $d->empcode,
             '{score}' => $score,
             '{rank}' => $rank,

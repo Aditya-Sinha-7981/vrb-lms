@@ -7,7 +7,8 @@ defined('MOODLE_INTERNAL') || die();
  * All raw SQL for local_vrblms lives here, isolated from the ranking and
  * orchestration layers. Every query here reads documented core tables
  * only ({cohort}, {cohort_members}, {enrol}, {quiz}, {quiz_attempts},
- * {user}, {user_info_data}, {user_info_field}) - no local_vrblms tables
+ * {quiz_grades}, {grade_items}, {course_modules}, {modules}, {user},
+ * {user_info_data}, {user_info_field}) - no local_vrblms tables
  * exist, this plugin is read-only against existing Moodle data.
  *
  * This exists as a separate class (rather than raw SQL inline in api.php)
@@ -51,6 +52,10 @@ class attempt_repository {
     }
 
     /**
+     * Quizzes employees can actually see - a hidden quiz, or one whose
+     * course module is mid-deletion, is left out so it can't count as an
+     * unattempted 0% or block course completion.
+     *
      * @param int[] $courseids
      * @return \stdClass[] quizid => {id, courseid, name, sumgrades, grade}
      */
@@ -60,8 +65,68 @@ class attempt_repository {
             return [];
         }
         [$insql, $params] = $DB->get_in_or_equal($courseids);
-        return $DB->get_records_select('quiz', "course $insql", $params,
-                'id ASC', 'id, course AS courseid, name, sumgrades, grade');
+        $sql = "SELECT q.id, q.course AS courseid, q.name, q.sumgrades, q.grade
+                  FROM {quiz} q
+                  JOIN {modules} m ON m.name = 'quiz'
+                  JOIN {course_modules} cm ON cm.module = m.id AND cm.instance = q.id
+                 WHERE q.course $insql
+                   AND cm.visible = 1
+                   AND cm.deletioninprogress = 0
+              ORDER BY q.id ASC";
+        return $DB->get_records_sql($sql, $params);
+    }
+
+    /**
+     * Brand cohort memberships for a set of users, in one query.
+     *
+     * @param int[] $userids
+     * @return array userid => int[] brand cohort ids
+     */
+    public static function get_brand_cohort_ids_by_user(array $userids): array {
+        global $DB;
+        if (empty($userids)) {
+            return [];
+        }
+        [$userinsql, $userparams] = $DB->get_in_or_equal($userids);
+        $sql = "SELECT cm.id, cm.userid, cm.cohortid
+                  FROM {cohort_members} cm
+                  JOIN {cohort} c ON c.id = cm.cohortid
+                 WHERE cm.userid $userinsql AND " . $DB->sql_like('c.idnumber', '?');
+        $bycohort = [];
+        foreach ($DB->get_records_sql($sql, array_merge($userparams, ['brand_%'])) as $row) {
+            $bycohort[(int) $row->userid][] = (int) $row->cohortid;
+        }
+        return $bycohort;
+    }
+
+    /**
+     * Each user's final quiz grade (quiz_grades, i.e. after the quiz's own
+     * grading method) alongside the quiz's pass mark from the gradebook.
+     *
+     * @param int[] $quizids
+     * @param int[] $userids
+     * @return array userid => [quizid => {grade, gradepass}]
+     */
+    public static function get_quiz_grades(array $quizids, array $userids): array {
+        global $DB;
+        if (empty($quizids) || empty($userids)) {
+            return [];
+        }
+        [$quizinsql, $quizparams] = $DB->get_in_or_equal($quizids);
+        [$userinsql, $userparams] = $DB->get_in_or_equal($userids);
+        $sql = "SELECT qg.id, qg.quiz, qg.userid, qg.grade, gi.gradepass
+                  FROM {quiz_grades} qg
+             LEFT JOIN {grade_items} gi ON gi.itemtype = 'mod' AND gi.itemmodule = 'quiz'
+                                       AND gi.iteminstance = qg.quiz AND gi.itemnumber = 0
+                 WHERE qg.quiz $quizinsql AND qg.userid $userinsql";
+        $byuser = [];
+        foreach ($DB->get_records_sql($sql, array_merge($quizparams, $userparams)) as $row) {
+            $byuser[(int) $row->userid][(int) $row->quiz] = (object) [
+                'grade' => (float) $row->grade,
+                'gradepass' => (float) ($row->gradepass ?? 0),
+            ];
+        }
+        return $byuser;
     }
 
     /**
@@ -167,19 +232,6 @@ class attempt_repository {
                  WHERE " . implode(' AND ', $wheres);
 
         return array_values($DB->get_fieldset_sql($sql, array_merge($joinparams, $whereparams)));
-    }
-
-    /**
-     * Quizzes across every brand's course(s) combined - the cross-brand
-     * "Overall" leaderboard's quiz set. Reuses get_courses_for_cohort()
-     * and get_quizzes_for_courses() rather than a new query shape.
-     */
-    public static function get_all_brand_quizzes(): array {
-        $courseids = [];
-        foreach (self::get_brand_cohorts() as $cohort) {
-            $courseids = array_merge($courseids, self::get_courses_for_cohort((int) $cohort->id));
-        }
-        return self::get_quizzes_for_courses(array_values(array_unique($courseids)));
     }
 
     /**

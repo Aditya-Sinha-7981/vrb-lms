@@ -12,4 +12,12 @@ if ($hassiteconfig) {
         \local_vrblms\ranking\strategy_manager::DEFAULT_KEY,
         \local_vrblms\ranking\strategy_manager::get_available_strategies()
     ));
+
+    $settings->add(new admin_setting_configselect(
+        'local_vrblms/unattemptedpolicy',
+        get_string('unattemptedpolicy', 'local_vrblms'),
+        get_string('unattemptedpolicy_desc', 'local_vrblms'),
+        \local_vrblms\ranking\strategy_manager::UNATTEMPTED_ZERO,
+        \local_vrblms\ranking\strategy_manager::get_unattempted_policies()
+    ));
 }

@@ -39,4 +39,16 @@ $tasks = [
         'dayofweek' => '*',
         'disabled' => 1,
     ],
+    // Course-completion certificates are issued instantly on the grading event;
+    // this daily sweep only catches any that were missed, so it runs by default.
+    [
+        'classname' => 'local_vrbcert\task\issue_completion_certificates',
+        'blocking' => 0,
+        'minute' => '30',
+        'hour' => '2',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+        'disabled' => 0,
+    ],
 ];

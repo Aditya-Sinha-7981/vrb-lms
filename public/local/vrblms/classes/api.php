@@ -129,10 +129,119 @@ class api {
         ?string $strategykey = null,
         ?int $limit = null
     ): array {
-        $quizzes = attempt_repository::get_all_brand_quizzes();
         $userids = attempt_repository::get_all_brand_members($state, $city);
 
-        return self::build_ranked_rows($userids, $quizzes, $strategykey, $limit);
+        // Each employee is scored against the quizzes of their OWN brands
+        // only - otherwise a single-brand employee would be measured against
+        // other brands' quizzes they can't even access.
+        $quizzesbycohort = [];
+        $allquizzes = [];
+        foreach (attempt_repository::get_brand_cohorts() as $cohort) {
+            $courseids = attempt_repository::get_courses_for_cohort((int) $cohort->id);
+            $quizzesbycohort[(int) $cohort->id] = attempt_repository::get_quizzes_for_courses($courseids);
+            $allquizzes += $quizzesbycohort[(int) $cohort->id];
+        }
+
+        $quizzesbyuser = [];
+        foreach (attempt_repository::get_brand_cohort_ids_by_user($userids) as $userid => $cohortids) {
+            $quizzesbyuser[$userid] = [];
+            foreach ($cohortids as $cohortid) {
+                $quizzesbyuser[$userid] += $quizzesbycohort[$cohortid] ?? [];
+            }
+        }
+
+        return self::build_ranked_rows($userids, $allquizzes, $strategykey, $limit, $quizzesbyuser);
+    }
+
+    /**
+     * Every course a brand grants access to, with its brand.
+     *
+     * @return \stdClass[] courseid => {courseid, coursename, brandidnumber, brandname}
+     */
+    public static function get_brand_courses(): array {
+        global $DB;
+
+        $courses = [];
+        foreach (attempt_repository::get_brand_cohorts() as $cohort) {
+            foreach (attempt_repository::get_courses_for_cohort((int) $cohort->id) as $courseid) {
+                // A course shared by two brands keeps the first brand by name.
+                if (!isset($courses[$courseid])) {
+                    $courses[$courseid] = (object) [
+                        'courseid' => (int) $courseid,
+                        'coursename' => '',
+                        'brandidnumber' => $cohort->idnumber,
+                        'brandname' => $cohort->name,
+                    ];
+                }
+            }
+        }
+        if ($courses) {
+            $names = $DB->get_records_list('course', 'id', array_keys($courses), '', 'id, fullname');
+            foreach ($courses as $courseid => $course) {
+                if (!isset($names[$courseid])) {
+                    unset($courses[$courseid]);
+                    continue;
+                }
+                $course->coursename = format_string($names[$courseid]->fullname, true,
+                        ['context' => \context_course::instance($courseid)]);
+            }
+        }
+        return $courses;
+    }
+
+    /**
+     * Per-employee progress through one brand course. A course counts as
+     * complete when every visible quiz in it has a passing final grade -
+     * this mirrors the quiz-gated module sequence, so passing the last
+     * quiz is what finishes the course. A course with no quizzes is never
+     * complete.
+     *
+     * @param int $courseid
+     * @param int[]|null $userids null = every member of the brand(s) the course belongs to
+     * @return \stdClass[] userid => {quizzes_total, quizzes_passed, complete, score_percent}
+     *         score_percent = average final quiz grade across the course's
+     *         quizzes, unattempted quizzes counting as 0.
+     */
+    public static function get_course_progress(int $courseid, ?array $userids = null): array {
+        if ($userids === null) {
+            $userids = [];
+            foreach (attempt_repository::get_brand_cohorts() as $cohort) {
+                if (in_array($courseid, attempt_repository::get_courses_for_cohort((int) $cohort->id))) {
+                    $userids = array_merge($userids, attempt_repository::get_cohort_members((int) $cohort->id));
+                }
+            }
+            $userids = array_values(array_unique(array_map('intval', $userids)));
+        }
+
+        $quizzes = attempt_repository::get_quizzes_for_courses([$courseid]);
+        $grades = attempt_repository::get_quiz_grades(array_keys($quizzes), $userids);
+
+        $progress = [];
+        foreach ($userids as $userid) {
+            $passed = 0;
+            $percentsum = 0.0;
+            foreach ($quizzes as $quizid => $quiz) {
+                $grade = $grades[$userid][$quizid] ?? null;
+                if ($grade === null) {
+                    continue;
+                }
+                // Small tolerance: quiz_grades and gradepass are both decimals.
+                if ($grade->grade >= $grade->gradepass - 0.00001) {
+                    $passed++;
+                }
+                if ((float) $quiz->grade > 0) {
+                    $percentsum += ($grade->grade / (float) $quiz->grade) * 100;
+                }
+            }
+            $total = count($quizzes);
+            $progress[$userid] = (object) [
+                'quizzes_total' => $total,
+                'quizzes_passed' => $passed,
+                'complete' => $total > 0 && $passed === $total,
+                'score_percent' => $total > 0 ? round($percentsum / $total, 2) : 0.0,
+            ];
+        }
+        return $progress;
     }
 
     /**
@@ -163,9 +272,12 @@ class api {
      * @param \stdClass[] $quizzes quizid => {courseid, name, sumgrades, grade}
      * @param string|null $strategykey
      * @param int|null $limit
+     * @param array|null $quizzesbyuser userid => quiz subset of $quizzes to score
+     *        that employee against; null = everyone is scored against $quizzes.
      * @return \stdClass[]
      */
-    protected static function build_ranked_rows(array $userids, array $quizzes, ?string $strategykey, ?int $limit): array {
+    protected static function build_ranked_rows(array $userids, array $quizzes, ?string $strategykey, ?int $limit,
+            ?array $quizzesbyuser = null): array {
         if (empty($userids)) {
             return [];
         }
@@ -192,7 +304,8 @@ class api {
             $employee = $directory[$userid];
             $userattempts = $attemptsbyuser[$userid] ?? [];
 
-            $evaluation = $strategy->evaluate($userattempts, $quizzes);
+            $userquizzes = $quizzesbyuser === null ? $quizzes : ($quizzesbyuser[$userid] ?? []);
+            $evaluation = $strategy->evaluate($userattempts, $userquizzes);
 
             $row = new \stdClass();
             $row->userid = $userid;

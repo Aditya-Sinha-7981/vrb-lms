@@ -35,11 +35,17 @@ class certificate_data {
     public $fullname;
     /** @var string Employee Code (user idnumber, from the API row). */
     public $empcode;
-    /** @var string Brand cohort idnumber, or 'overall'. */
+    /** @var string Storage key: brand cohort idnumber, 'overall', or 'course_<id>' for completion. */
     public $brandkey;
-    /** @var string Display brand/overall name. */
+    /** @var string Display brand/overall name (the course name for completion). */
     public $brandname;
-    /** @var string 'perbrand' | 'overall'. */
+    /** @var string|null Brand cohort idnumber for colour/label, when it differs from $brandkey. */
+    public $displaybrandkey;
+    /** @var string|null Brand name for the printed band, when it differs from $brandname. */
+    public $displaybrandname;
+    /** @var string Course name (completion track only). */
+    public $coursename = '';
+    /** @var string 'perbrand' | 'overall' | 'completion'. */
     public $track;
     /** @var int|null Leaderboard rank at issue time (display only). */
     public $rank;
@@ -62,6 +68,20 @@ class certificate_data {
         if (empty($this->issuedate)) {
             $this->issuedate = time();
         }
+    }
+
+    /**
+     * @return string brand cohort idnumber (or 'overall') that drives the band colour and label
+     */
+    public function brand_for_display(): string {
+        return $this->displaybrandkey ?? $this->brandkey;
+    }
+
+    /**
+     * @return string brand name for the printed band
+     */
+    public function brandname_for_display(): string {
+        return $this->displaybrandname ?? $this->brandname;
     }
 
     /**

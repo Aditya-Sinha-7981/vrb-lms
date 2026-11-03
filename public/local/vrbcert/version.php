@@ -25,11 +25,11 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_vrbcert';
-$plugin->version = 2026092300;
+$plugin->version = 2026101800;
 $plugin->requires = 2025100600;
 $plugin->maturity = MATURITY_ALPHA;
-$plugin->release = '0.2.0';
+$plugin->release = '0.3.0';
 $plugin->dependencies = [
-    // Certificates consume the shared leaderboard/ranking service exactly as-is.
-    'local_vrblms' => 2026083001,
+    // Top-performer certificates consume the leaderboard as-is; completion certificates use its course-progress API.
+    'local_vrblms' => 2026101800,
 ];

@@ -112,13 +112,13 @@ class issued_certificate {
     }
 
     /**
-     * @param array $filters optional 'period', 'brandkey'
+     * @param array $filters optional 'period', 'brandkey', 'track'
      * @return \stdClass[] newest first
      */
     public static function get_all(array $filters = []): array {
         global $DB;
         $conditions = [];
-        foreach (['period', 'brandkey'] as $key) {
+        foreach (['period', 'brandkey', 'track'] as $key) {
             if (!empty($filters[$key])) {
                 $conditions[$key] = $filters[$key];
             }
@@ -135,6 +135,20 @@ class issued_certificate {
             "SELECT DISTINCT period FROM {" . self::TABLE . "} ORDER BY period DESC"
         );
         return $values ?: [];
+    }
+
+    /**
+     * What to show in a "Period" column: the award period, or "Course
+     * completion" for a completion certificate (whose period is a fixed
+     * internal value).
+     *
+     * @param \stdClass $record row from this table
+     * @return string plain text
+     */
+    public static function period_label(\stdClass $record): string {
+        return $record->track === completion_issuer::TRACK
+            ? get_string('coursecompletion', 'local_vrbcert')
+            : (string) $record->period;
     }
 
     /**
@@ -182,8 +196,12 @@ class issued_certificate {
      * @return string safe filename
      */
     private static function build_filename(certificate_data $data, int $id): string {
-        $brand = $data->brandkey === 'overall' ? 'overall' : preg_replace('/^brand_/', '', $data->brandkey);
-        $parts = ['vrbcert', $brand, $data->period, 'emp' . $data->userid, $id];
+        if ($data->track === completion_issuer::TRACK) {
+            $parts = ['vrbcert', 'completion', $data->coursename, 'emp' . $data->userid, $id];
+        } else {
+            $brand = $data->brandkey === 'overall' ? 'overall' : preg_replace('/^brand_/', '', $data->brandkey);
+            $parts = ['vrbcert', $brand, $data->period, 'emp' . $data->userid, $id];
+        }
         $slug = \core_text::strtolower(implode('-', $parts));
         $slug = preg_replace('/[^a-z0-9\-]+/', '-', $slug);
         $slug = trim(preg_replace('/-+/', '-', $slug), '-');

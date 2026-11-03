@@ -19,6 +19,30 @@ class strategy_manager {
 
     const DEFAULT_KEY = 'best';
 
+    /** Unattempted quizzes score 0% (the average covers every expected quiz). */
+    const UNATTEMPTED_ZERO = 'zero';
+    /** Unattempted quizzes are left out (the average covers attempted quizzes only). */
+    const UNATTEMPTED_IGNORE = 'ignore';
+
+    /**
+     * @return array policy key => display string, for the admin setting.
+     */
+    public static function get_unattempted_policies(): array {
+        return [
+            self::UNATTEMPTED_ZERO => get_string('unattempted_zero', 'local_vrblms'),
+            self::UNATTEMPTED_IGNORE => get_string('unattempted_ignore', 'local_vrblms'),
+        ];
+    }
+
+    /**
+     * How quizzes an employee hasn't attempted yet count towards their
+     * score. Site-wide, applies to every strategy.
+     */
+    public static function get_unattempted_policy(): string {
+        $policy = get_config('local_vrblms', 'unattemptedpolicy');
+        return $policy === self::UNATTEMPTED_IGNORE ? self::UNATTEMPTED_IGNORE : self::UNATTEMPTED_ZERO;
+    }
+
     /**
      * @return array key => display string, for admin settings / UI dropdowns.
      */

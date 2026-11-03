@@ -60,7 +60,7 @@ if (!$records) {
         $score = $record->scorepercent === null ? '' : format_float($record->scorepercent, 1) . '%';
         $table->data[] = [
             s($record->brandname),
-            s($record->period),
+            s(\local_vrbcert\issued_certificate::period_label($record)),
             $record->certrank === null ? '' : s($record->certrank),
             $score,
             userdate($record->timecreated, get_string('strftimedate', 'langconfig')),

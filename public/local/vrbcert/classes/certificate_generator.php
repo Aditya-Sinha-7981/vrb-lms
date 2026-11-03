@@ -43,16 +43,36 @@ class certificate_generator {
      * @return string PDF bytes
      */
     public static function render(certificate_data $data): string {
-        return self::build(template::get_spec(), $data);
+        return self::build(template::get_spec($data->track), $data);
     }
 
     /**
      * Render a sample certificate from current settings + dummy data.
      * Nothing is stored.
      *
+     * @param string $track 'completion' for a course-completion sample, else a top-performer sample
      * @return string PDF bytes
      */
-    public static function preview(): string {
+    public static function preview(string $track = 'perbrand'): string {
+        if ($track === completion_issuer::TRACK) {
+            $data = new certificate_data([
+                'userid' => 0,
+                'fullname' => 'Asha Verma',
+                'empcode' => 'EMP-0000',
+                'brandkey' => completion_issuer::brandkey(0),
+                'brandname' => 'Veeba Onboarding',
+                'displaybrandkey' => 'brand_veeba',
+                'displaybrandname' => 'Veeba',
+                'coursename' => 'Veeba Onboarding',
+                'track' => completion_issuer::TRACK,
+                'rank' => null,
+                'scorepercent' => 88.0,
+                'period' => completion_issuer::PERIOD,
+                'issuedate' => time(),
+            ]);
+            return self::build(template::get_spec($data->track), $data);
+        }
+
         $period = trim((string) get_config('local_vrbcert', 'period'));
         $data = new certificate_data([
             'userid' => 0,
@@ -66,7 +86,7 @@ class certificate_generator {
             'period' => $period !== '' ? $period : date('Y'),
             'issuedate' => time(),
         ]);
-        return self::build(template::get_spec(), $data);
+        return self::build(template::get_spec($data->track), $data);
     }
 
     /**
@@ -79,7 +99,7 @@ class certificate_generator {
         require_once($CFG->libdir . '/pdflib.php');
 
         $accent = self::rgb($spec->accentcolour);
-        $band = self::rgb(template::brand_colour($d->brandkey));
+        $band = self::rgb(template::brand_colour($d->brand_for_display()));
         $ink = [29, 29, 29];
         $muted = [110, 110, 110];
         $centrew = self::PAGE_W - (2 * self::MARGIN);
@@ -109,7 +129,8 @@ class certificate_generator {
         // Brand / track band.
         $pdf->SetFont('freesans', 'B', 13);
         $pdf->SetTextColor($band[0], $band[1], $band[2]);
-        self::centre($pdf, 41, self::upper(template::brand_label($d->brandkey, $d->brandname)), $centrew);
+        self::centre($pdf, 41, self::upper(template::brand_label($d->brand_for_display(), $d->brandname_for_display())),
+            $centrew);
         $pdf->SetDrawColor($band[0], $band[1], $band[2]);
         $pdf->SetLineWidth(0.4);
         $pdf->Line(self::PAGE_W / 2 - 40, 51, self::PAGE_W / 2 + 40, 51);
@@ -164,11 +185,13 @@ class certificate_generator {
         $pdf->Cell(70, 5, get_string('issuedon', 'local_vrbcert',
             userdate($d->issuedate, get_string('strftimedate', 'langconfig'))), 0, 0, 'R');
 
-        // Footer reference line (period middot employee-code).
-        $ref = $d->period . '   ' . "\xC2\xB7" . '   ' . $d->empcode;
+        // Footer reference line (period - or course, for completion - middot employee-code).
+        $reflabel = $d->track === completion_issuer::TRACK ? $d->coursename : $d->period;
+        $ref = $reflabel . '   ' . "\xC2\xB7" . '   ' . $d->empcode;
         $pdf->SetFont('freesans', '', 8);
         $pdf->SetTextColor(150, 150, 150);
-        self::centre($pdf, self::PAGE_H - 20, $ref, $centrew);
+        // Kept above the inner border rule (y = PAGE_H - 15.5), which a lower line would sit on.
+        self::centre($pdf, self::PAGE_H - 26, $ref, $centrew);
 
         return $pdf->Output('', 'S');
     }

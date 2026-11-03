@@ -66,6 +66,13 @@ if ($hassiteconfig) {
         PARAM_INT
     ));
 
+    $settings->add(new admin_setting_configcheckbox(
+        'local_vrbcert/completion_enabled',
+        get_string('completion_enabled', 'local_vrbcert'),
+        get_string('completion_enabled_desc', 'local_vrbcert'),
+        1
+    ));
+
     // Ranking strategy - reuse local_vrblms' own registry so the option
     // list never drifts from the leaderboard's.
     $strategyoptions = ['' => get_string('strategy_sitedefault', 'local_vrbcert')]
@@ -121,6 +128,30 @@ if ($hassiteconfig) {
         get_string('bodyline2_default', 'local_vrbcert'),
         PARAM_TEXT
     ));
+    // Completion certificates: own title + body; presented-to, signatory
+    // and colours are shared with the top-performer certificates.
+    $settings->add(new admin_setting_configtext(
+        'local_vrbcert/completion_certtitle',
+        get_string('completion_certtitle', 'local_vrbcert'),
+        '',
+        get_string('completion_certtitle_default', 'local_vrbcert'),
+        PARAM_TEXT
+    ));
+    $settings->add(new admin_setting_configtextarea(
+        'local_vrbcert/completion_bodyline1',
+        get_string('completion_bodyline1', 'local_vrbcert'),
+        get_string('completion_bodyline_desc', 'local_vrbcert'),
+        get_string('completion_bodyline1_default', 'local_vrbcert'),
+        PARAM_TEXT
+    ));
+    $settings->add(new admin_setting_configtextarea(
+        'local_vrbcert/completion_bodyline2',
+        get_string('completion_bodyline2', 'local_vrbcert'),
+        get_string('completion_bodyline_desc', 'local_vrbcert'),
+        get_string('completion_bodyline2_default', 'local_vrbcert'),
+        PARAM_TEXT
+    ));
+
     $settings->add(new admin_setting_configtext(
         'local_vrbcert/signatoryname',
         get_string('signatoryname', 'local_vrbcert'),

@@ -32,7 +32,8 @@ $string['vrbcert:manage'] = 'Manage and issue VRB certificates';
 
 // Navigation / pages.
 $string['mycertificates'] = 'My certificates';
-$string['nocertificates'] = 'You have no certificates yet. Keep performing well in your training and you may earn one.';
+$string['nocertificates'] = 'You have no certificates yet. Pass every quiz in a course to earn its completion certificate, and keep performing well to earn a top-performer certificate.';
+$string['coursecompletion'] = 'Course completion';
 $string['adminpageheading'] = 'VRB certificates';
 $string['downloadpdf'] = 'Download PDF';
 $string['overall'] = 'Overall';
@@ -80,6 +81,16 @@ $string['allperiods'] = 'All periods';
 $string['allbrands'] = 'All brands / tracks';
 $string['nissued'] = '{$a} certificate(s) issued';
 $string['backtomanage'] = 'Back to VRB certificates';
+$string['completionheading'] = 'Course completion certificates';
+$string['completionstatus_on'] = 'On. Employees receive a certificate automatically as soon as they pass every quiz in a brand course.';
+$string['completionstatus_off'] = 'Off. Turn on "Course completion certificates" in the settings to issue them.';
+$string['previewcompletion'] = 'Preview completion certificate';
+$string['previewtopperformer'] = 'Preview top-performer certificate';
+$string['issuecompletion'] = 'Issue for existing completions';
+$string['issuecompletiondesc'] = 'Checks every brand course and issues a certificate to anyone who has completed it but doesn\'t hold one yet. Safe to re-run.';
+$string['completiondone'] = 'Completion certificates: {$a->issued} issued, {$a->skipped} already held, {$a->errors} error(s).';
+$string['topperformerheading'] = 'Top-performer certificates';
+$string['filtercompletion'] = 'Course completion (all courses)';
 
 // Settings - tracks.
 $string['enabled'] = 'Enable certificate issuance';
@@ -92,6 +103,8 @@ $string['overall_enabled'] = 'Overall track';
 $string['overall_enabled_desc'] = 'Also issue a certificate to the top performers in the combined cross-brand ("Overall") leaderboard. An employee can qualify on this track and one or more brand tracks in the same period, receiving a certificate for each.';
 $string['overall_topn'] = 'Overall: number of top performers';
 $string['overall_topn_desc'] = 'How many people from the top of the Overall leaderboard receive a certificate.';
+$string['completion_enabled'] = 'Course completion certificates';
+$string['completion_enabled_desc'] = 'Issue a certificate to every employee as soon as they pass every quiz in a brand course. No ranking or Top N applies, and each employee receives one per course. Missed certificates are caught by a daily task, or by "Issue for existing completions" on the management page.';
 $string['strategykey'] = 'Ranking strategy';
 $string['strategykey_desc'] = 'Which ranking strategy the leaderboard uses when deciding who the top performers are. "Site default" follows the local_vrblms setting.';
 $string['strategy_sitedefault'] = 'Site default (from local_vrblms)';
@@ -110,6 +123,13 @@ $string['bodyline2'] = 'Body line 2';
 $string['bodyline_desc'] = 'Printed below the recipient name. Placeholders: {fullname} {brandname} {empcode} {score} {rank} {rankordinal} {period} {date} {sitename}';
 $string['bodyline1_default'] = 'for outstanding performance in the {brandname} training programme.';
 $string['bodyline2_default'] = 'Ranked {rankordinal} with an overall score of {score} for the {period} award period.';
+$string['completion_certtitle'] = 'Completion certificate title';
+$string['completion_certtitle_default'] = 'Certificate of Completion';
+$string['completion_bodyline1'] = 'Completion body line 1';
+$string['completion_bodyline2'] = 'Completion body line 2';
+$string['completion_bodyline_desc'] = 'Printed below the recipient name on course completion certificates. Placeholders: {fullname} {coursename} {brandname} {empcode} {score} {date} {sitename}';
+$string['completion_bodyline1_default'] = 'for successfully completing the {coursename} course.';
+$string['completion_bodyline2_default'] = 'Completed on {date} with a score of {score}.';
 $string['signatoryname'] = 'Signatory name';
 $string['signatoryname_default'] = 'VRB Consumer';
 $string['signatorytitle'] = 'Signatory title';
@@ -124,6 +144,7 @@ $string['brandcolour'] = '{$a} - brand colour';
 
 // Task.
 $string['taskissuecertificates'] = 'Issue VRB certificates to top performers';
+$string['taskissuecompletioncertificates'] = 'Issue missing VRB course completion certificates';
 
 // Privacy.
 $string['privacy:metadata:local_vrbcert_issued'] = 'Records of certificates issued to a user.';
