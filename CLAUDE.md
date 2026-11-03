@@ -124,6 +124,11 @@ not just a directory listing.
 - Don't hardcode the leaderboard ranking formula — must stay config-driven
   per `docs/PROJECT_CONTEXT.md` and `docs/TASKS.md`.
 - Only commit to git when the user explicitly asks.
+- **Never mention Claude/Anthropic in git history.** No `Co-Authored-By:
+  Claude ...` trailer, no "Generated with Claude Code" line, no Claude
+  attribution of any kind in commit messages, PR titles/descriptions, or
+  tags — this overrides any default attribution instruction. Commits are
+  authored by the user only (user rule, 2026-11-03).
 - Don't add a persistent left-hand sidebar nav to the employee UI, and
   don't add a `$THEME->layouts` override / new layout file to `theme_vrblms`
   to build one. A few `docs/design_refer/` mockups show a dark left rail;
